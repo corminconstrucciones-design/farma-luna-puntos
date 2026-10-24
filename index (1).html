@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F6F4A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Luna Puntos">
+<title>Farmacia Luna · Puntos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --verde:#1F6F4A; --verde-osc:#14532F; --verde-claro:#E7F3EC;
+    --texto:#1D2A23; --suave:#5F6F66; --borde:#D9E3DD; --fondo:#F5F8F6;
+    --blanco:#FFFFFF; --rojo:#B3261E; --rojo-claro:#FCEDEC; --amarillo:#F4B400;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--fondo);color:var(--texto);font-family:'Nunito',system-ui,sans-serif;font-size:17px}
+  .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 16px 40px}
+  header{display:flex;align-items:center;gap:10px;padding:18px 0 14px}
+  .logo{width:42px;height:42px;border-radius:12px;background:var(--verde);display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px}
+  header h1{font-size:20px;margin:0;line-height:1.1}
+  header small{display:block;color:var(--suave);font-weight:600;font-size:13px}
+  .card{background:var(--blanco);border:1px solid var(--borde);border-radius:18px;padding:20px;margin-bottom:14px}
+  h2{font-size:22px;margin:0 0 6px}
+  p{margin:0 0 12px;line-height:1.45}
+  .muted{color:var(--suave);font-size:15px}
+  label{display:block;font-weight:700;font-size:15px;margin:12px 0 6px}
+  input,textarea{width:100%;font:inherit;padding:14px;border:1.5px solid var(--borde);border-radius:12px;background:#fff;color:var(--texto)}
+  input:focus,textarea:focus{outline:none;border-color:var(--verde)}
+  input.grande{font-size:26px;text-align:center;letter-spacing:2px;font-weight:700}
+  textarea{min-height:80px;resize:vertical}
+  .btn{display:block;width:100%;border:0;border-radius:14px;padding:16px;font:inherit;font-weight:800;font-size:18px;cursor:pointer;margin-top:14px;text-align:center;text-decoration:none}
+  .btn-p{background:var(--verde);color:#fff}
+  .btn-p:active{background:var(--verde-osc)}
+  .btn-s{background:var(--verde-claro);color:var(--verde-osc)}
+  .btn-g{background:#fff;color:var(--texto);border:1.5px solid var(--borde)}
+  .btn-wa{background:#25D366;color:#fff}
+  .btn:disabled{opacity:.45;cursor:default}
+  .link{background:none;border:0;color:var(--suave);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;display:block;margin:10px auto 0}
+  .check{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--suave);margin-top:14px}
+  .check input{width:22px;height:22px;flex:none;margin:0}
+  .saldo{background:var(--verde);color:#fff;border:0;text-align:center}
+  .saldo .num{font-size:64px;font-weight:800;line-height:1}
+  .saldo .lbl{opacity:.85;font-weight:600}
+  .saldo .desc{margin-top:14px;background:rgba(255,255,255,.14);border-radius:12px;padding:10px;font-weight:700}
+  .barra{height:10px;background:rgba(255,255,255,.25);border-radius:6px;overflow:hidden;margin-top:12px}
+  .barra i{display:block;height:100%;background:#fff;border-radius:6px}
+  .estrellas{display:flex;justify-content:center;gap:6px;margin:10px 0}
+  .estrellas button{background:none;border:0;font-size:42px;cursor:pointer;color:#CFD8D3;padding:0;line-height:1}
+  .estrellas button.on{color:var(--amarillo)}
+  .reglas{list-style:none;padding:0;margin:0}
+  .reglas li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--borde);font-size:15px}
+  .reglas li:last-child{border-bottom:0}
+  .reglas b{color:var(--verde)}
+  .msg{border-radius:12px;padding:12px 14px;font-weight:700;margin-top:12px;font-size:15px}
+  .msg.err{background:var(--rojo-claro);color:var(--rojo)}
+  .msg.ok{background:var(--verde-claro);color:var(--verde-osc)}
+  .fila{display:flex;gap:10px}
+  .fila>*{flex:1}
+  .datos{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .dato{background:var(--fondo);border-radius:12px;padding:10px}
+  .dato span{display:block;font-size:13px;color:var(--suave);font-weight:600}
+  .dato b{font-size:18px}
+  .oculto{display:none!important}
+  .cargando{position:fixed;inset:0;background:rgba(245,248,246,.7);display:grid;place-items:center;z-index:9}
+  .spin{width:44px;height:44px;border:5px solid var(--verde-claro);border-top-color:var(--verde);border-radius:50%;animation:g 1s linear infinite}
+  @keyframes g{to{transform:rotate(360deg)}}
+  .qr{text-align:center}
+  .qr #qrcode{display:inline-block;padding:16px;background:#fff;border-radius:16px;margin:10px 0}
+  .qr h2{font-size:28px}
+  @media print{header .modo,.noprint{display:none!important}.card{border:0}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">L</div>
+    <div><h1>Farmacia Luna</h1><small id="subtitulo">Club de puntos</small></div>
+  </header>
+
+  <!-- ================= CLIENTE ================= -->
+  <section id="vCliente">
+    <!-- Paso 1: DNI -->
+    <div id="cDni" class="card">
+      <h2>¡Hola! 👋</h2>
+      <p class="muted">Ingresá tu DNI para ver tus puntos. Si es tu primera vez, te registrás en 30 segundos.</p>
+      <label for="dni">Tu DNI</label>
+      <input id="dni" class="grande" inputmode="numeric" maxlength="10" placeholder="12345678" autocomplete="off">
+      <button class="btn btn-p" onclick="cliConsultar()">Continuar</button>
+      <div id="cDniMsg"></div>
+    </div>
+
+    <!-- Paso 2: Registro -->
+    <div id="cRegistro" class="card oculto">
+      <h2>Registrate</h2>
+      <p class="muted">Es una sola vez. DNI: <b id="regDni"></b></p>
+      <label for="regNombre">Nombre</label>
+      <input id="regNombre" autocomplete="given-name">
+      <label for="regApellido">Apellido</label>
+      <input id="regApellido" autocomplete="family-name">
+      <label for="regTel">WhatsApp (con código de área, sin 0 ni 15)</label>
+      <input id="regTel" inputmode="tel" placeholder="2645123456" autocomplete="tel">
+      <label class="check"><input type="checkbox" id="regAcepta"> Acepto que Farmacia Luna guarde mis datos para el programa de puntos y me contacte por WhatsApp.</label>
+      <button class="btn btn-p" onclick="cliRegistrar()">Registrarme</button>
+      <div id="cRegMsg"></div>
+      <button class="link" onclick="cliSalir()">Volver</button>
+    </div>
+
+    <!-- Paso 3: Mis puntos -->
+    <div id="cPuntos" class="oculto">
+      <div class="card saldo">
+        <div class="lbl" id="cHola">Hola</div>
+        <div class="num" id="cSaldo">0</div>
+        <div class="lbl">puntos</div>
+        <div class="desc" id="cDesc"></div>
+        <div class="barra"><i id="cBarra" style="width:0"></i></div>
+      </div>
+
+      <div id="cResena" class="card oculto">
+        <h2>¿Cómo te atendimos?</h2>
+        <p class="muted" id="cResenaTxt">Contanos y sumá puntos.</p>
+        <div class="estrellas" id="estrellas"></div>
+        <textarea id="resComentario" placeholder="Si querés, dejanos un comentario (opcional)"></textarea>
+        <button class="btn btn-p" onclick="cliResena()">Enviar</button>
+        <div id="cResMsg"></div>
+      </div>
+
+      <div id="cGracias" class="card oculto">
+        <h2>¡Gracias! 💚</h2>
+        <p id="cGraciasTxt"></p>
+        <div id="cGoogle" class="oculto">
+          <p>¿Nos ayudás también contándolo en Google? Nos ayuda mucho a que más vecinos nos conozcan.</p>
+          <a id="cGoogleBtn" class="btn btn-s" target="_blank" rel="noopener">⭐ Calificar en Google</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size:18px">Cómo sumar puntos</h2>
+        <ul class="reglas" id="cReglas"></ul>
+        <p class="muted" style="margin:12px 0 0">Para sumar o canjear, decí tu DNI en el mostrador.</p>
+      </div>
+      <button class="link" onclick="cliSalir()">No soy yo / Salir</button>
+    </div>
+  </section>
+
+  <!-- ================= MOSTRADOR ================= -->
+  <section id="vMostrador" class="oculto">
+    <div id="mPin" class="card">
+      <h2>Mostrador</h2>
+      <p class="muted">Ingresá el PIN y tu nombre.</p>
+      <label for="pin">PIN</label>
+      <input id="pin" class="grande" inputmode="numeric" type="password" maxlength="8">
+      <label for="atendio">Tu nombre</label>
+      <input id="atendio" placeholder="Ej.: Laura">
+      <button class="btn btn-p" onclick="mosEntrar()">Entrar</button>
+      <div id="mPinMsg"></div>
+    </div>
+
+    <div id="mPanel" class="oculto">
+      <div class="card">
+        <label for="buscar" style="margin-top:0">Buscar cliente por DNI o teléfono</label>
+        <div class="fila">
+          <input id="buscar" inputmode="numeric" placeholder="DNI o teléfono">
+        </div>
+        <button class="btn btn-p" onclick="mosBuscar()">Buscar</button>
+        <div id="mBusMsg"></div>
+      </div>
+
+      <div id="mNuevo" class="card oculto">
+        <h2>Cliente nuevo</h2>
+        <p class="muted">No está registrado. Lo podés registrar acá.</p>
+        <label>DNI</label><input id="nDni" inputmode="numeric">
+        <label>Nombre</label><input id="nNombre">
+        <label>Apellido</label><input id="nApellido">
+        <label>WhatsApp (sin 0 ni 15)</label><input id="nTel" inputmode="tel" placeholder="2645123456">
+        <label class="check"><input type="checkbox" id="nAcepta"> El cliente acepta que guardemos sus datos y lo contactemos por WhatsApp.</label>
+        <button class="btn btn-p" onclick="mosRegistrar()">Registrar</button>
+        <div id="mNuevoMsg"></div>
+      </div>
+
+      <div id="mCliente" class="oculto">
+        <div class="card saldo">
+          <div class="lbl" id="mNombre"></div>
+          <div class="num" id="mSaldo">0</div>
+          <div class="lbl">puntos</div>
+          <div class="desc" id="mDesc"></div>
+        </div>
+        <div class="card">
+          <div class="datos">
+            <div class="dato"><span>DNI</span><b id="mDni"></b></div>
+            <div class="dato"><span>Visitas</span><b id="mVisitas"></b></div>
+            <div class="dato"><span>Última visita</span><b id="mUltima"></b></div>
+            <div class="dato"><span>Reseña</span><b id="mResena"></b></div>
+          </div>
+        </div>
+        <div class="card">
+          <label for="monto" style="margin-top:0">Monto de la compra ($)</label>
+          <input id="monto" class="grande" inputmode="numeric" placeholder="0" oninput="mosPrevia()">
+          <p class="muted" id="mPrevia" style="margin:8px 0 0"></p>
+          <button class="btn btn-p" onclick="mosCompra()">Sumar compra</button>
+          <button class="btn btn-s" onclick="mosVisita()" id="mBtnVisita">Sumar visita (sin compra)</button>
+          <button class="btn btn-g" onclick="mosCanje()" id="mBtnCanje">Canjear puntos</button>
+          <a class="btn btn-wa" id="mWa" target="_blank" rel="noopener">WhatsApp al cliente</a>
+          <div id="mAccMsg"></div>
+        </div>
+      </div>
+      <button class="link" onclick="mosSalir()">Cerrar mostrador</button>
+    </div>
+  </section>
+
+  <!-- ================= QR ================= -->
+  <section id="vQr" class="oculto">
+    <div class="card qr">
+      <h2>Sumá puntos en Farmacia Luna</h2>
+      <p>Escaneá con la cámara de tu celular</p>
+      <div id="qrcode"></div>
+      <p class="muted">Compras · Visitas · Reseñas = descuentos</p>
+      <button class="btn btn-p noprint" onclick="window.print()">Imprimir</button>
+    </div>
+  </section>
+</div>
+
+<div id="cargando" class="cargando oculto"><div class="spin"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbxYhtkA6B0V3l58wjEvmllzAKCT_xoxzPoeaoxxFKxZL6b4ab_wkVKPu-DsGzE1uvtXYg/exec';
+
+let CFG = { pesosPorPunto:1000, puntosVisita:5, puntosResena:50, puntosCanje:100, descuentoCanje:1000, whatsapp:'' };
+let clienteDni = '', estrellasSel = 0, mosCli = null;
+
+const $ = id => document.getElementById(id);
+const ver = (id, si) => $(id).classList.toggle('oculto', !si);
+const pesos = n => '$' + Number(n || 0).toLocaleString('es-AR');
+const soloNum = s => String(s || '').replace(/\D/g, '');
+const guardar = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+const leer = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+
+function mensaje(id, texto, ok) {
+  $(id).innerHTML = texto ? '<div class="msg ' + (ok ? 'ok' : 'err') + '">' + texto + '</div>' : '';
+}
+
+async function api(datos) {
+  ver('cargando', true);
+  try {
+    const r = await fetch(API, { method: 'POST', body: JSON.stringify(datos) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'Algo salió mal');
+    return j;
+  } catch (e) {
+    if (e instanceof TypeError) throw new Error('Sin conexión. Revisá internet e intentá de nuevo.');
+    throw e;
+  } finally {
+    ver('cargando', false);
+  }
+}
+
+function descuentoDe(saldo) {
+  const canjes = Math.floor(saldo / CFG.puntosCanje);
+  return canjes * CFG.descuentoCanje;
+}
+
+function textoSaldo(saldo) {
+  const d = descuentoDe(saldo);
+  if (d > 0) return 'Tenés ' + pesos(d) + ' de descuento para usar 🎉';
+  return 'Te faltan ' + (CFG.puntosCanje - saldo) + ' puntos para ' + pesos(CFG.descuentoCanje) + ' de descuento';
+}
+
+/* ---------------- CLIENTE ---------------- */
+async function cliConsultar(dniGuardado) {
+  const dni = soloNum(dniGuardado || $('dni').value);
+  mensaje('cDniMsg', '');
+  if (dni.length < 7 || dni.length > 8) return mensaje('cDniMsg', 'El DNI debe tener 7 u 8 números');
+  try {
+    const r = await api({ accion: 'consultar', dni });
+    clienteDni = dni;
+    if (r.existe) { guardar('lunaDni', dni); mostrarPuntos(r.cliente); }
+    else { $('regDni').textContent = dni; ver('cDni', false); ver('cRegistro', true); $('regNombre').focus(); }
+  } catch (e) {
+    if (dniGuardado) { guardar('lunaDni', null); }
+    mensaje('cDniMsg', e.message);
+  }
+}
+
+async function cliRegistrar() {
+  mensaje('cRegMsg', '');
+  if (!$('regAcepta').checked) return mensaje('cRegMsg', 'Para sumar puntos tenés que aceptar el uso de datos');
+  try {
+    const r = await api({ accion: 'registrar', dni: clienteDni, nombre: $('regNombre').value,
+      apellido: $('regApellido').value, telefono: $('regTel').value, acepta: true });
+    guardar('lunaDni', clienteDni);
+    mostrarPuntos(r.cliente);
+  } catch (e) { mensaje('cRegMsg', e.message); }
+}
+
+function mostrarPuntos(c) {
+  ver('cDni', false); ver('cRegistro', false); ver('cPuntos', true); ver('cGracias', false);
+  $('cHola').textContent = 'Hola, ' + (String(c.nombre).split(' ')[0] || '') + '. Tenés';
+  $('cSaldo').textContent = c.saldo;
+  $('cDesc').textContent = textoSaldo(c.saldo);
+  const avance = c.saldo >= CFG.puntosCanje ? 100 : Math.round((c.saldo % CFG.puntosCanje) / CFG.puntosCanje * 100);
+  $('cBarra').style.width = avance + '%';
+  ver('cResena', !c.dejoResena);
+  $('cResenaTxt').textContent = CFG.puntosResena > 0 ? 'Contanos y sumá ' + CFG.puntosResena + ' puntos. Te lleva 10 segundos.' : 'Contanos, te lleva 10 segundos.';
+  estrellasSel = 0; pintarEstrellas(); $('resComentario').value = ''; mensaje('cResMsg', '');
+}
+
+function pintarEstrellas() {
+  const box = $('estrellas'); box.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const b = document.createElement('button');
+    b.textContent = '★'; b.className = i <= estrellasSel ? 'on' : '';
+    b.setAttribute('aria-label', i + ' estrellas');
+    b.onclick = () => { estrellasSel = i; pintarEstrellas(); };
+    box.appendChild(b);
+  }
+}
+
+async function cliResena() {
+  mensaje('cResMsg', '');
+  if (!estrellasSel) return mensaje('cResMsg', 'Tocá las estrellas para calificar');
+  try {
+    const r = await api({ accion: 'resena', dni: clienteDni, estrellas: estrellasSel, comentario: $('resComentario').value });
+    mostrarPuntos(r.cliente);
+    ver('cResena', false); ver('cGracias', true);
+    $('cGraciasTxt').textContent = r.puntosGanados > 0 ? 'Sumaste ' + r.puntosGanados + ' puntos por tu opinión.' : 'Tu opinión nos ayuda a mejorar.';
+    ver('cGoogle', !!r.invitarGoogle);
+    if (r.invitarGoogle) $('cGoogleBtn').href = r.linkGoogle;
+  } catch (e) { mensaje('cResMsg', e.message); }
+}
+
+function cliSalir() {
+  guardar('lunaDni', null); clienteDni = ''; $('dni').value = '';
+  ver('cPuntos', false); ver('cRegistro', false); ver('cDni', true); mensaje('cDniMsg', '');
+}
+
+function pintarReglas() {
+  const items = [
+    ['Cada ' + pesos(CFG.pesosPorPunto) + ' de compra', '1 punto'],
+    CFG.puntosVisita > 0 ? ['Visita sin compra', CFG.puntosVisita + ' puntos'] : null,
+    CFG.puntosResena > 0 ? ['Tu opinión (una vez)', CFG.puntosResena + ' puntos'] : null,
+    [CFG.puntosCanje + ' puntos', pesos(CFG.descuentoCanje) + ' de descuento']
+  ].filter(Boolean);
+  $('cReglas').innerHTML = items.map(i => '<li><span>' + i[0] + '</span><b>' + i[1] + '</b></li>').join('');
+}
+
+/* ---------------- MOSTRADOR ---------------- */
+async function mosEntrar() {
+  mensaje('mPinMsg', '');
+  if (!$('atendio').value.trim()) return mensaje('mPinMsg', 'Poné tu nombre');
+  try {
+    await api({ accion: 'mostradorBuscar', pin: $('pin').value, q: '0' });
+    guardar('lunaPin', $('pin').value); guardar('lunaAtendio', $('atendio').value.trim());
+    ver('mPin', false); ver('mPanel', true); $('buscar').focus();
+  } catch (e) { mensaje('mPinMsg', e.message); }
+}
+
+function mosSalir() {
+  guardar('lunaPin', null); $('pin').value = ''; mosCli = null;
+  ver('mPanel', false); ver('mCliente', false); ver('mNuevo', false); ver('mPin', true);
+}
+
+const pinActual = () => leer('lunaPin') || $('pin').value;
+const atendioActual = () => leer('lunaAtendio') || $('atendio').value;
+
+async function mosBuscar() {
+  const q = soloNum($('buscar').value);
+  mensaje('mBusMsg', ''); ver('mCliente', false); ver('mNuevo', false);
+  if (q.length < 7) return mensaje('mBusMsg', 'Escribí el DNI o el teléfono completo');
+  try {
+    const r = await api({ accion: 'mostradorBuscar', pin: pinActual(), q });
+    if (r.encontrado) mosMostrar(r.cliente);
+    else {
+      ver('mNuevo', true); mensaje('mNuevoMsg', '');
+      $('nDni').value = q.length <= 8 ? q : ''; $('nTel').value = q.length > 8 ? q : '';
+      $('nNombre').value = ''; $('nApellido').value = ''; $('nAcepta').checked = false;
+    }
+  } catch (e) { mensaje('mBusMsg', e.message); if (/PIN/.test(e.message)) mosSalir(); }
+}
+
+async function mosRegistrar() {
+  mensaje('mNuevoMsg', '');
+  if (!$('nAcepta').checked) return mensaje('mNuevoMsg', 'El cliente tiene que aceptar el uso de datos');
+  try {
+    const dni = soloNum($('nDni').value);
+    await api({ accion: 'registrar', dni, nombre: $('nNombre').value, apellido: $('nApellido').value, telefono: $('nTel').value, acepta: true });
+    $('buscar').value = dni; ver('mNuevo', false); await mosBuscar();
+    mensaje('mAccMsg', 'Cliente registrado ✔', true);
+  } catch (e) { mensaje('mNuevoMsg', e.message); }
+}
+
+function mosMostrar(c) {
+  mosCli = c;
+  ver('mCliente', true);
+  $('mNombre').textContent = c.nombre + ' ' + c.apellido;
+  $('mSaldo').textContent = c.saldo;
+  $('mDesc').textContent = descuentoDe(c.saldo) > 0 ? 'Puede canjear ' + pesos(CFG.descuentoCanje) + ' (' + CFG.puntosCanje + ' puntos)' : 'Le faltan ' + (CFG.puntosCanje - c.saldo) + ' puntos para canjear';
+  $('mDni').textContent = c.dni;
+  $('mVisitas').textContent = c.visitas;
+  $('mUltima').textContent = c.ultimaVisita || '—';
+  $('mResena').textContent = c.dejoResena ? 'Sí' : 'No';
+  $('mBtnCanje').disabled = c.saldo < CFG.puntosCanje;
+  $('mBtnCanje').textContent = 'Canjear ' + CFG.puntosCanje + ' puntos = ' + pesos(CFG.descuentoCanje);
+  $('mBtnVisita').classList.toggle('oculto', !(CFG.puntosVisita > 0));
+  const tel = soloNum(c.telefono).slice(-10);
+  $('mWa').classList.toggle('oculto', tel.length < 10);
+  $('mWa').href = 'https://wa.me/549' + tel + '?text=' + encodeURIComponent('Hola ' + c.nombre + ', te escribimos de Farmacia Luna. Tenés ' + c.saldo + ' puntos acumulados.');
+  $('monto').value = ''; mosPrevia(); mensaje('mAccMsg', '');
+}
+
+function montoActual() { return Number(soloNum($('monto').value)); }
+
+function mosPrevia() {
+  const m = montoActual();
+  $('mPrevia').textContent = m > 0 ? 'Suma ' + Math.floor(m / CFG.pesosPorPunto) + ' puntos' : '';
+}
+
+async function accionMostrador(datos, okTexto) {
+  mensaje('mAccMsg', '');
+  try {
+    const r = await api(Object.assign({ pin: pinActual(), dni: mosCli.dni, atendio: atendioActual() }, datos));
+    mosMostrar(r.cliente);
+    mensaje('mAccMsg', okTexto(r), true);
+  } catch (e) { mensaje('mAccMsg', e.message); if (/PIN/.test(e.message)) mosSalir(); }
+}
+
+function mosCompra() {
+  const m = montoActual();
+  if (!(m > 0)) return mensaje('mAccMsg', 'Poné el monto de la compra');
+  accionMostrador({ accion: 'mostradorCompra', monto: m }, r => '✔ Compra de ' + pesos(m) + ': +' + r.puntos + ' puntos');
+}
+
+function mosVisita() {
+  accionMostrador({ accion: 'mostradorVisita' }, r => '✔ Visita: +' + r.puntos + ' puntos');
+}
+
+function mosCanje() {
+  if (!confirm('¿Canjear ' + CFG.puntosCanje + ' puntos por ' + pesos(CFG.descuentoCanje) + ' de descuento?')) return;
+  accionMostrador({ accion: 'mostradorCanje' }, r => '✔ Canje hecho. Aplicá ' + pesos(r.descuento) + ' de descuento');
+}
+
+/* ---------------- INICIO ---------------- */
+async function iniciar() {
+  const modo = new URLSearchParams(location.search).get('modo');
+  try { const r = await api({ accion: 'config' }); Object.assign(CFG, r); } catch (e) {}
+  pintarReglas();
+
+  if (modo === 'qr') {
+    ver('vCliente', false); ver('vQr', true); $('subtitulo').textContent = 'Club de puntos';
+    new QRCode($('qrcode'), { text: location.origin + location.pathname, width: 260, height: 260, colorDark: '#14532F' });
+    return;
+  }
+  if (modo === 'mostrador') {
+    ver('vCliente', false); ver('vMostrador', true); $('subtitulo').textContent = 'Mostrador';
+    $('atendio').value = leer('lunaAtendio');
+    if (leer('lunaPin')) { ver('mPin', false); ver('mPanel', true); }
+    $('buscar').addEventListener('keydown', e => { if (e.key === 'Enter') mosBuscar(); });
+    return;
+  }
+  $('dni').addEventListener('keydown', e => { if (e.key === 'Enter') cliConsultar(); });
+  const dniGuardado = leer('lunaDni');
+  if (dniGuardado) { $('dni').value = dniGuardado; cliConsultar(dniGuardado); }
+}
+iniciar();
+</script>
+</body>
+</html>
