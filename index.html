@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1F6F4A">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Luna Puntos">
-<title>Farmacia Luna · Puntos</title>
+<meta name="apple-mobile-web-app-title" content="Club de Puntos">
+<title>Club de Puntos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -19,7 +19,8 @@
   html,body{margin:0;background:var(--fondo);color:var(--texto);font-family:'Nunito',system-ui,sans-serif;font-size:17px}
   .app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 16px 40px}
   header{display:flex;align-items:center;gap:10px;padding:18px 0 14px}
-  .logo{width:42px;height:42px;border-radius:12px;background:var(--verde);display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px}
+  .logo{width:42px;height:42px;border-radius:12px;background:var(--verde);display:grid;place-items:center;color:#fff;font-weight:800;font-size:22px;flex:none}
+  .logo-img{width:42px;height:42px;border-radius:12px;object-fit:contain;background:#fff;flex:none}
   header h1{font-size:20px;margin:0;line-height:1.1}
   header small{display:block;color:var(--suave);font-weight:600;font-size:13px}
   .card{background:var(--blanco);border:1px solid var(--borde);border-radius:18px;padding:20px;margin-bottom:14px}
@@ -38,7 +39,7 @@
   .btn-g{background:#fff;color:var(--texto);border:1.5px solid var(--borde)}
   .btn-wa{background:#25D366;color:#fff}
   .btn:disabled{opacity:.45;cursor:default}
-  .link{background:none;border:0;color:var(--suave);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;display:block;margin:10px auto 0}
+  .link{background:none;border:0;color:var(--suave);font:inherit;font-size:14px;text-decoration:underline;cursor:pointer;padding:8px;display:block;margin:10px auto 0;text-align:center}
   .check{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--suave);margin-top:14px}
   .check input{width:22px;height:22px;flex:none;margin:0}
   .saldo{background:var(--verde);color:#fff;border:0;text-align:center}
@@ -53,7 +54,7 @@
   .reglas{list-style:none;padding:0;margin:0}
   .reglas li{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--borde);font-size:15px}
   .reglas li:last-child{border-bottom:0}
-  .reglas b{color:var(--verde)}
+  .reglas b{color:var(--verde);text-align:right}
   .msg{border-radius:12px;padding:12px 14px;font-weight:700;margin-top:12px;font-size:15px}
   .msg.err{background:var(--rojo-claro);color:var(--rojo)}
   .msg.ok{background:var(--verde-claro);color:var(--verde-osc)}
@@ -70,13 +71,16 @@
   .qr{text-align:center}
   .qr #qrcode{display:inline-block;padding:16px;background:#fff;border-radius:16px;margin:10px 0}
   .qr h2{font-size:28px}
-  /* Concurso de atención */
   .califica{border:2px solid var(--amarillo)}
   .empleados{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
   .empleados .btn{margin-top:0;font-size:17px;padding:14px 10px}
   .atiende{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--verde-claro);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:700;color:var(--verde-osc)}
-  .atiende button{background:none;border:0;text-decoration:underline;color:var(--verde-osc);font:inherit;font-size:14px;cursor:pointer;padding:0}
+  .atiende small{display:block;font-weight:600;font-size:13px;opacity:.8}
+  .atiende button{background:none;border:0;text-decoration:underline;color:var(--verde-osc);font:inherit;font-size:14px;cursor:pointer;padding:0;flex:none}
   .linkbox{background:var(--fondo);border-radius:12px;padding:12px;font-size:14px;word-break:break-all;margin-top:12px}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-top:10px}
+  .chip{flex:none;border:1.5px solid var(--borde);background:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;font-weight:700;color:var(--texto);cursor:pointer}
+  .chip.on{background:var(--verde);border-color:var(--verde);color:#fff}
   .rank{list-style:none;padding:0;margin:0}
   .rank li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--borde)}
   .rank li:last-child{border-bottom:0}
@@ -86,21 +90,22 @@
   .rank li.bronce .pos{background:#C27C3E;color:#fff}
   .rank .nom{flex:1;font-weight:700;min-width:0}
   .rank .nom small{display:block;color:var(--suave);font-weight:600;font-size:13px}
-  .rank .prom{font-size:20px;font-weight:800;color:var(--verde);white-space:nowrap}
+  .rank .prom{font-size:18px;font-weight:800;color:var(--verde);white-space:nowrap}
   .rank li.fuera{opacity:.55}
-  @media print{header .modo,.noprint{display:none!important}.card{border:0}}
+  .locales{display:grid;gap:10px;margin-top:10px}
+  @media print{.noprint{display:none!important}.card{border:0}}
 </style>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="logo">L</div>
-    <div><h1>Farmacia Luna</h1><small id="subtitulo">Club de puntos</small></div>
+    <div class="logo" id="logoLetra">C</div>
+    <img class="logo-img oculto" id="logoImg" alt="">
+    <div><h1 id="clubNombre">Club de Puntos</h1><small id="subtitulo">Club de puntos</small></div>
   </header>
 
   <!-- ================= CLIENTE ================= -->
   <section id="vCliente">
-    <!-- Paso 1: DNI -->
     <div id="cDni" class="card">
       <h2>¡Hola! 👋</h2>
       <p class="muted" id="cDniTxt">Ingresá tu DNI para ver tus puntos. Si es tu primera vez, te registrás en 30 segundos.</p>
@@ -110,7 +115,6 @@
       <div id="cDniMsg"></div>
     </div>
 
-    <!-- Paso 2: Registro -->
     <div id="cRegistro" class="card oculto">
       <h2>Registrate</h2>
       <p class="muted">Es una sola vez. DNI: <b id="regDni"></b></p>
@@ -120,13 +124,12 @@
       <input id="regApellido" autocomplete="family-name">
       <label for="regTel">WhatsApp (con código de área, sin 0 ni 15)</label>
       <input id="regTel" inputmode="tel" placeholder="2645123456" autocomplete="tel">
-      <label class="check"><input type="checkbox" id="regAcepta"> Acepto que Farmacia Luna guarde mis datos para el programa de puntos y me contacte por WhatsApp.</label>
+      <label class="check"><input type="checkbox" id="regAcepta"> <span id="regAceptaTxt">Acepto que el club guarde mis datos para el programa de puntos y me contacte por WhatsApp.</span></label>
       <button class="btn btn-p" onclick="cliRegistrar()">Registrarme</button>
       <div id="cRegMsg"></div>
       <button class="link" onclick="cliSalir()">Volver</button>
     </div>
 
-    <!-- Paso 3: Mis puntos -->
     <div id="cPuntos" class="oculto">
       <div class="card saldo">
         <div class="lbl" id="cHola">Hola</div>
@@ -136,7 +139,6 @@
         <div class="barra"><i id="cBarra" style="width:0"></i></div>
       </div>
 
-      <!-- Calificación de la atención del día -->
       <div id="cCalifica" class="card califica oculto">
         <h2 id="cCalTit">¿Cómo te atendieron hoy?</h2>
         <p class="muted" id="cCalTxt"></p>
@@ -152,7 +154,7 @@
       </div>
 
       <div id="cResena" class="card oculto">
-        <h2>¿Cómo te atendimos?</h2>
+        <h2 id="cResenaTit">¿Qué te pareció?</h2>
         <p class="muted" id="cResenaTxt">Contanos y sumá puntos.</p>
         <div class="estrellas" id="estrellas"></div>
         <textarea id="resComentario" placeholder="Si querés, dejanos un comentario (opcional)"></textarea>
@@ -164,7 +166,7 @@
         <h2>¡Gracias! 💚</h2>
         <p id="cGraciasTxt"></p>
         <div id="cGoogle" class="oculto">
-          <p>¿Nos ayudás también contándolo en Google? Nos ayuda mucho a que más vecinos nos conozcan.</p>
+          <p id="cGoogleTxt">¿Nos ayudás también contándolo en Google?</p>
           <a id="cGoogleBtn" class="btn btn-s" target="_blank" rel="noopener">⭐ Calificar en Google</a>
         </div>
       </div>
@@ -172,7 +174,7 @@
       <div class="card">
         <h2 style="font-size:18px">Cómo sumar puntos</h2>
         <ul class="reglas" id="cReglas"></ul>
-        <p class="muted" style="margin:12px 0 0">Para sumar o canjear, decí tu DNI en el mostrador.</p>
+        <p class="muted" style="margin:12px 0 0" id="cAdheridos"></p>
       </div>
       <button class="link" onclick="cliSalir()">No soy yo / Salir</button>
     </div>
@@ -182,17 +184,16 @@
   <section id="vMostrador" class="oculto">
     <div id="mPin" class="card">
       <h2>Mostrador</h2>
-      <p class="muted">Ingresá el PIN del mostrador.</p>
+      <p class="muted">Ingresá el PIN de tu local.</p>
       <label for="pin">PIN</label>
       <input id="pin" class="grande" inputmode="numeric" type="password" maxlength="8">
       <button class="btn btn-p" onclick="mosEntrar()">Entrar</button>
       <div id="mPinMsg"></div>
     </div>
 
-    <!-- Quién atiende -->
     <div id="mQuien" class="card oculto">
       <h2>¿Quién atiende?</h2>
-      <p class="muted">Tocá tu nombre. Las compras y visitas que cargues quedan a tu nombre para el concurso.</p>
+      <p class="muted" id="mQuienTxt">Tocá tu nombre.</p>
       <div id="mEmpleados" class="empleados"></div>
       <div id="mManual" class="oculto">
         <label for="atendio">Tu nombre</label>
@@ -205,15 +206,13 @@
 
     <div id="mPanel" class="oculto">
       <div class="atiende">
-        <span>Atiende: <span id="mAtiende"></span></span>
+        <span><span id="mAtiende"></span><small id="mLocalTxt"></small></span>
         <button onclick="mosQuien()">Cambiar</button>
       </div>
 
       <div class="card">
         <label for="buscar" style="margin-top:0">Buscar cliente por DNI o teléfono</label>
-        <div class="fila">
-          <input id="buscar" inputmode="numeric" placeholder="DNI o teléfono">
-        </div>
+        <input id="buscar" inputmode="numeric" placeholder="DNI o teléfono">
         <button class="btn btn-p" onclick="mosBuscar()">Buscar</button>
         <div id="mBusMsg"></div>
       </div>
@@ -242,7 +241,7 @@
             <div class="dato"><span>DNI</span><b id="mDni"></b></div>
             <div class="dato"><span>Visitas</span><b id="mVisitas"></b></div>
             <div class="dato"><span>Última visita</span><b id="mUltima"></b></div>
-            <div class="dato"><span>Reseña</span><b id="mResena"></b></div>
+            <div class="dato"><span>Reseñas dejadas</span><b id="mResena"></b></div>
           </div>
         </div>
         <div class="card">
@@ -257,7 +256,6 @@
         </div>
       </div>
 
-      <!-- Venta por WhatsApp: link de calificación -->
       <div class="card">
         <h2 style="font-size:18px">Venta por WhatsApp</h2>
         <p class="muted">Generá un link para que el cliente califique tu atención. Sirve una sola vez.</p>
@@ -270,6 +268,7 @@
         <div id="mLinkMsg"></div>
       </div>
 
+      <a class="link" id="mQrLink" target="_blank" rel="noopener">Ver / imprimir el QR de este local</a>
       <button class="link" onclick="mosSalir()">Cerrar mostrador</button>
     </div>
   </section>
@@ -288,7 +287,11 @@
       <div class="card">
         <label for="rMes" style="margin-top:0">Mes</label>
         <input id="rMes" type="month" placeholder="aaaa-mm" onchange="rankCargar()">
-        <p class="muted" id="rInfo" style="margin:10px 0 0"></p>
+        <label style="margin-top:14px">Ver</label>
+        <div class="chips" id="rVistas"></div>
+        <label style="margin-top:14px">Ordenar por</label>
+        <div class="chips" id="rOrdenes"></div>
+        <p class="muted" id="rInfo" style="margin:12px 0 0"></p>
       </div>
       <div class="card"><ul class="rank" id="rLista"></ul></div>
       <button class="btn btn-s" onclick="rankCargar()">Actualizar</button>
@@ -298,11 +301,16 @@
 
   <!-- ================= QR ================= -->
   <section id="vQr" class="oculto">
-    <div class="card qr">
-      <h2>Sumá puntos en Farmacia Luna</h2>
+    <div id="qrElegir" class="card oculto">
+      <h2>QR por local</h2>
+      <p class="muted">Elegí el local para ver e imprimir su QR.</p>
+      <div class="locales" id="qrLocales"></div>
+    </div>
+    <div id="qrCartel" class="card qr oculto">
+      <h2 id="qrTitulo">Sumá puntos</h2>
       <p>Escaneá con la cámara de tu celular</p>
       <div id="qrcode"></div>
-      <p class="muted">Compras · Visitas · Reseñas = descuentos</p>
+      <p class="muted" id="qrPie">Compras · Visitas · Opiniones = descuentos</p>
       <button class="btn btn-p noprint" onclick="window.print()">Imprimir</button>
     </div>
   </section>
@@ -314,10 +322,12 @@
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbxYhtkA6B0V3l58wjEvmllzAKCT_xoxzPoeaoxxFKxZL6b4ab_wkVKPu-DsGzE1uvtXYg/exec';
 
-let CFG = { pesosPorPunto:1000, puntosVisita:5, puntosResena:50, puntosCanje:100, descuentoCanje:1000, whatsapp:'' };
-let clienteDni = '', estrellasSel = 0, mosCli = null;
-let estrellasAt = 0, codigoLink = '', empLink = '', pendTimer = null, pendHasta = 0;
-let linkMensaje = '', pinAdmin = '';
+let CFG = { pesosPorPunto:1000, puntosVisita:5, puntosResena:50, puntosCanje:100, descuentoCanje:1000, puntosCalificar:0,
+            nombreClub:'Club de Puntos', logo:'', locales:[] };
+let clienteDni = '', estrellasSel = 0, mosCli = null, cliActual = null;
+let estrellasAt = 0, codigoLink = '', empLink = '', locLink = '', pendTimer = null, pendHasta = 0;
+let linkMensaje = '', pinAdmin = '', LOCAL_ID = '', MOS_LOCAL = null, MOS_EMPLEADOS = [];
+let RANK = null, rankVista = 'general', rankOrden = 'calif';
 
 const $ = id => document.getElementById(id);
 const ver = (id, si) => $(id).classList.toggle('oculto', !si);
@@ -327,6 +337,9 @@ const guardar = (k, v) => { try { v === null ? localStorage.removeItem(k) : loca
 const leer = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const mesActual = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+const localPorId = id => CFG.locales.find(l => l.id === id) || null;
+const localPorNombre = n => CFG.locales.find(l => l.nombre === n) || null;
+const base = () => location.origin + location.pathname;
 
 function mensaje(id, texto, ok) {
   $(id).innerHTML = texto ? '<div class="msg ' + (ok ? 'ok' : 'err') + '">' + esc(texto) + '</div>' : '';
@@ -347,10 +360,20 @@ async function api(datos, silencioso) {
   }
 }
 
-function descuentoDe(saldo) {
-  const canjes = Math.floor(saldo / CFG.puntosCanje);
-  return canjes * CFG.descuentoCanje;
+/* ---------- Marca: nombre y logo configurables ---------- */
+function pintarMarca() {
+  const nombre = CFG.nombreClub || 'Club de Puntos';
+  $('clubNombre').textContent = nombre;
+  $('logoLetra').textContent = nombre.trim().charAt(0).toUpperCase() || 'C';
+  document.title = nombre;
+  $('regAceptaTxt').textContent = 'Acepto que ' + nombre + ' y sus comercios adheridos guarden mis datos para el programa de puntos y me contacten por WhatsApp.';
+  const img = $('logoImg');
+  img.onload = () => { ver('logoImg', true); ver('logoLetra', false); };
+  img.onerror = () => { ver('logoImg', false); ver('logoLetra', true); };
+  img.src = CFG.logo || 'logo.png';
 }
+
+function descuentoDe(saldo) { return Math.floor(saldo / CFG.puntosCanje) * CFG.descuentoCanje; }
 
 function textoSaldo(saldo) {
   const d = descuentoDe(saldo);
@@ -379,10 +402,10 @@ async function cliConsultar(dniGuardado) {
   try {
     const r = await api({ accion: 'consultar', dni });
     clienteDni = dni;
-    if (r.existe) { guardar('lunaDni', dni); mostrarPuntos(r.cliente); }
+    if (r.existe) { guardar('clubDni', dni); mostrarPuntos(r.cliente); }
     else { $('regDni').textContent = dni; ver('cDni', false); ver('cRegistro', true); $('regNombre').focus(); }
   } catch (e) {
-    if (dniGuardado) { guardar('lunaDni', null); }
+    if (dniGuardado) guardar('clubDni', null);
     mensaje('cDniMsg', e.message);
   }
 }
@@ -393,12 +416,16 @@ async function cliRegistrar() {
   try {
     const r = await api({ accion: 'registrar', dni: clienteDni, nombre: $('regNombre').value,
       apellido: $('regApellido').value, telefono: $('regTel').value, acepta: true });
-    guardar('lunaDni', clienteDni);
+    guardar('clubDni', clienteDni);
     mostrarPuntos(r.cliente);
   } catch (e) { mensaje('cRegMsg', e.message); }
 }
 
+// El local de la reseña: el del QR escaneado o, si no, el último donde compró
+function localParaResena(c) { return localPorId(LOCAL_ID) || localPorId(c.ultimoLocal); }
+
 function mostrarPuntos(c, sinRevisar) {
+  cliActual = c;
   ver('cDni', false); ver('cRegistro', false); ver('cPuntos', true); ver('cGracias', false);
   ver('cCalifica', false); ver('cCalGracias', false);
   $('cHola').textContent = 'Hola, ' + (String(c.nombre).split(' ')[0] || '') + '. Tenés';
@@ -406,8 +433,13 @@ function mostrarPuntos(c, sinRevisar) {
   $('cDesc').textContent = textoSaldo(c.saldo);
   const avance = c.saldo >= CFG.puntosCanje ? 100 : Math.round((c.saldo % CFG.puntosCanje) / CFG.puntosCanje * 100);
   $('cBarra').style.width = avance + '%';
-  ver('cResena', !c.dejoResena);
-  $('cResenaTxt').textContent = CFG.puntosResena > 0 ? 'Contanos y sumá ' + CFG.puntosResena + ' puntos. Te lleva 10 segundos.' : 'Contanos, te lleva 10 segundos.';
+  const loc = localParaResena(c);
+  const falta = loc && (c.resenas || []).indexOf(loc.id) < 0;
+  ver('cResena', !!falta);
+  if (loc) {
+    $('cResenaTit').textContent = '¿Qué te pareció ' + loc.nombre + '?';
+    $('cResenaTxt').textContent = CFG.puntosResena > 0 ? 'Contanos y sumá ' + CFG.puntosResena + ' puntos. Te lleva 10 segundos.' : 'Contanos, te lleva 10 segundos.';
+  }
   estrellasSel = 0; pintarResena(); $('resComentario').value = ''; mensaje('cResMsg', '');
   if (!sinRevisar) revisarCalificacion();
 }
@@ -415,8 +447,8 @@ function mostrarPuntos(c, sinRevisar) {
 /* --- Calificación de la atención --- */
 function revisarCalificacion() {
   detenerEspera();
-  if (codigoLink) { abrirCalifica(empLink, 'te atendió por WhatsApp'); return; }
-  pendHasta = Date.now() + 10 * 60000;   // sigue buscando hasta 10 minutos
+  if (codigoLink) { abrirCalifica(empLink, locLink, true); return; }
+  pendHasta = Date.now() + 10 * 60000;
   buscarPendiente();
 }
 
@@ -424,7 +456,7 @@ async function buscarPendiente() {
   if (!clienteDni || $('cPuntos').classList.contains('oculto') || !$('cCalifica').classList.contains('oculto')) return;
   try {
     const r = await api({ accion: 'calificacionPendiente', dni: clienteDni }, true);
-    if (r.pendiente) { abrirCalifica(r.empleado, '', r.puntos); return; }
+    if (r.pendiente) { abrirCalifica(r.empleado, r.local, false, r.puntos); return; }
   } catch (e) {
     if (/desconocida/i.test(e.message)) return;
   }
@@ -433,14 +465,15 @@ async function buscarPendiente() {
 
 function detenerEspera() { clearTimeout(pendTimer); pendTimer = null; }
 
-function abrirCalifica(empleado, canalTxt, puntos) {
+function abrirCalifica(empleado, local, porWhatsapp, puntos) {
   detenerEspera();
+  if (puntos === undefined) puntos = CFG.puntosCalificar;
   estrellasAt = 0; pintarAtencion(); $('calComentario').value = ''; mensaje('cCalMsg', '');
   $('cCalTit').textContent = '¿Cómo te atendió ' + empleado + '?';
-  const pts = puntos === undefined ? 'Calificá su atención y sumá puntos.'
-    : puntos > 0 ? 'Calificá su atención y sumá ' + puntos + (puntos === 1 ? ' punto.' : ' puntos.')
-    : 'Tu opinión nos ayuda a mejorar.';
-  $('cCalTxt').textContent = (canalTxt ? empleado + ' ' + canalTxt + '. ' : '') + pts;
+  const donde = porWhatsapp ? 'Te atendió por WhatsApp' + (local ? ' (' + local + ')' : '') + '. '
+    : (local ? 'Hoy en ' + local + '. ' : '');
+  const pts = puntos > 0 ? 'Calificá su atención y sumá ' + puntos + (puntos === 1 ? ' punto.' : ' puntos.') : 'Tu opinión nos ayuda a mejorar.';
+  $('cCalTxt').textContent = donde + pts;
   ver('cResena', false); ver('cGracias', false); ver('cCalGracias', false);
   ver('cCalifica', true);
 }
@@ -452,33 +485,43 @@ async function cliCalificar() {
     const datos = { accion: 'calificar', dni: clienteDni, estrellas: estrellasAt, comentario: $('calComentario').value };
     if (codigoLink) datos.codigo = codigoLink;
     const r = await api(datos);
-    if (codigoLink) { codigoLink = ''; empLink = ''; history.replaceState(null, '', location.pathname); }
+    if (codigoLink) limpiarLink();
     mostrarPuntos(r.cliente, true);
     ver('cCalGracias', true);
     $('cCalGraciasTxt').textContent = 'Tu calificación para ' + r.empleado + ' quedó registrada.' +
       (r.puntosGanados > 0 ? ' Sumaste ' + r.puntosGanados + (r.puntosGanados === 1 ? ' punto.' : ' puntos.') : '');
   } catch (e) {
     mensaje('cCalMsg', e.message);
-    if (codigoLink && /usado|venció|válido/.test(e.message)) { codigoLink = ''; empLink = ''; history.replaceState(null, '', location.pathname); }
+    if (codigoLink && /usado|venció|válido/.test(e.message)) limpiarLink();
   }
+}
+
+function limpiarLink() {
+  codigoLink = ''; empLink = ''; locLink = '';
+  history.replaceState(null, '', location.pathname + (LOCAL_ID ? '?l=' + encodeURIComponent(LOCAL_ID) : ''));
 }
 
 async function cliResena() {
   mensaje('cResMsg', '');
   if (!estrellasSel) return mensaje('cResMsg', 'Tocá las estrellas para calificar');
+  const loc = cliActual && localParaResena(cliActual);
+  if (!loc) return mensaje('cResMsg', 'No sabemos de qué local es tu opinión. Escaneá el QR del local.');
   try {
-    const r = await api({ accion: 'resena', dni: clienteDni, estrellas: estrellasSel, comentario: $('resComentario').value });
+    const r = await api({ accion: 'resena', dni: clienteDni, localId: loc.id, estrellas: estrellasSel, comentario: $('resComentario').value });
     mostrarPuntos(r.cliente, true);
     ver('cResena', false); ver('cGracias', true);
     $('cGraciasTxt').textContent = r.puntosGanados > 0 ? 'Sumaste ' + r.puntosGanados + ' puntos por tu opinión.' : 'Tu opinión nos ayuda a mejorar.';
     ver('cGoogle', !!r.invitarGoogle);
-    if (r.invitarGoogle) $('cGoogleBtn').href = r.linkGoogle;
+    if (r.invitarGoogle) {
+      $('cGoogleTxt').textContent = '¿Nos ayudás también contándolo en Google? Así más vecinos conocen ' + r.local + '.';
+      $('cGoogleBtn').href = r.linkGoogle;
+    }
   } catch (e) { mensaje('cResMsg', e.message); }
 }
 
 function cliSalir() {
   detenerEspera();
-  guardar('lunaDni', null); clienteDni = ''; $('dni').value = '';
+  guardar('clubDni', null); clienteDni = ''; cliActual = null; $('dni').value = '';
   ver('cPuntos', false); ver('cRegistro', false); ver('cDni', true); mensaje('cDniMsg', '');
 }
 
@@ -486,59 +529,74 @@ function pintarReglas() {
   const items = [
     ['Cada ' + pesos(CFG.pesosPorPunto) + ' de compra', '1 punto'],
     CFG.puntosVisita > 0 ? ['Visita sin compra', CFG.puntosVisita + ' puntos'] : null,
-    CFG.puntosResena > 0 ? ['Tu opinión (una vez)', CFG.puntosResena + ' puntos'] : null,
+    CFG.puntosCalificar > 0 ? ['Calificar la atención', CFG.puntosCalificar + (CFG.puntosCalificar === 1 ? ' punto' : ' puntos')] : null,
+    CFG.puntosResena > 0 ? ['Tu opinión (una vez por local)', CFG.puntosResena + ' puntos'] : null,
     [CFG.puntosCanje + ' puntos', pesos(CFG.descuentoCanje) + ' de descuento']
   ].filter(Boolean);
-  $('cReglas').innerHTML = items.map(i => '<li><span>' + i[0] + '</span><b>' + i[1] + '</b></li>').join('');
+  $('cReglas').innerHTML = items.map(i => '<li><span>' + esc(i[0]) + '</span><b>' + esc(i[1]) + '</b></li>').join('');
+  $('cAdheridos').textContent = CFG.locales.length
+    ? 'Sumás y canjeás en cualquiera de estos locales: ' + CFG.locales.map(l => l.nombre).join(', ') + '. Decí tu DNI en el mostrador.'
+    : 'Para sumar o canjear, decí tu DNI en el mostrador.';
 }
 
 /* ---------------- MOSTRADOR ---------------- */
+const pinActual = () => leer('clubPin') || $('pin').value.trim();
+const atendioActual = () => leer('clubAtendio') || $('atendio').value.trim();
+
 async function mosEntrar() {
   mensaje('mPinMsg', '');
   const pin = $('pin').value.trim();
   if (!pin) return mensaje('mPinMsg', 'Poné el PIN');
   try {
-    await api({ accion: 'mostradorBuscar', pin, q: '0' });
-    guardar('lunaPin', pin);
+    const r = await api({ accion: 'mostradorEntrar', pin });
+    guardar('clubPin', pin);
+    aplicarLocalMostrador(r);
     ver('mPin', false);
-    await mosQuien();
+    mosMostrarQuien();
   } catch (e) { mensaje('mPinMsg', e.message); }
 }
 
+function aplicarLocalMostrador(r) {
+  MOS_LOCAL = r.local; MOS_EMPLEADOS = r.empleados || [];
+  $('subtitulo').textContent = 'Mostrador · ' + MOS_LOCAL.nombre;
+  $('mLocalTxt').textContent = MOS_LOCAL.nombre;
+  $('mQuienTxt').textContent = 'Tocá tu nombre. Lo que cargues queda a tu nombre en ' + MOS_LOCAL.nombre + '.';
+  $('mQrLink').href = base() + '?modo=qr&l=' + encodeURIComponent(MOS_LOCAL.id);
+}
+
 async function mosQuien() {
-  ver('mPanel', false); ver('mQuien', true); mensaje('mQuienMsg', '');
-  let lista = [];
   try {
-    lista = (await api({ accion: 'mostradorEmpleados', pin: pinActual() })).empleados || [];
-  } catch (e) {
-    if (/PIN/.test(e.message)) return mosSalir();
-  }
+    const r = await api({ accion: 'mostradorEmpleados', pin: pinActual() });
+    MOS_EMPLEADOS = r.empleados || [];
+  } catch (e) { if (/PIN/.test(e.message)) return mosSalir(); }
+  mosMostrarQuien();
+}
+
+function mosMostrarQuien() {
+  ver('mPanel', false); ver('mQuien', true); mensaje('mQuienMsg', '');
   const box = $('mEmpleados'); box.innerHTML = '';
-  lista.forEach(emp => {
+  MOS_EMPLEADOS.forEach(emp => {
     const b = document.createElement('button');
     b.className = 'btn btn-s'; b.textContent = emp.nombre;
     b.onclick = () => mosElegir(emp.nombre);
     box.appendChild(b);
   });
-  ver('mManual', !lista.length);   // si no hay empleados cargados, se escribe el nombre a mano
+  ver('mManual', !MOS_EMPLEADOS.length);
 }
 
 function mosElegir(nombre) {
   if (!nombre) return mensaje('mQuienMsg', 'Elegí o escribí tu nombre');
-  guardar('lunaAtendio', nombre); $('atendio').value = nombre;
-  $('mAtiende').textContent = nombre;
+  guardar('clubAtendio', nombre); $('atendio').value = nombre;
+  $('mAtiende').textContent = 'Atiende: ' + nombre;
   ver('mQuien', false); ver('mPanel', true); ver('mLinkRes', false); mensaje('mLinkMsg', '');
   $('buscar').focus();
 }
 
 function mosSalir() {
-  guardar('lunaPin', null); guardar('lunaAtendio', null); $('pin').value = ''; mosCli = null;
+  guardar('clubPin', null); guardar('clubAtendio', null); $('pin').value = ''; mosCli = null; MOS_LOCAL = null;
   ver('mPanel', false); ver('mCliente', false); ver('mNuevo', false); ver('mQuien', false); ver('mLinkRes', false);
-  ver('mPin', true);
+  ver('mPin', true); $('subtitulo').textContent = 'Mostrador';
 }
-
-const pinActual = () => leer('lunaPin') || $('pin').value;
-const atendioActual = () => leer('lunaAtendio') || $('atendio').value;
 
 async function mosBuscar() {
   const q = soloNum($('buscar').value);
@@ -575,13 +633,14 @@ function mosMostrar(c) {
   $('mDni').textContent = c.dni;
   $('mVisitas').textContent = c.visitas;
   $('mUltima').textContent = c.ultimaVisita || '—';
-  $('mResena').textContent = c.dejoResena ? 'Sí' : 'No';
+  $('mResena').textContent = c.resenas || 0;
   $('mBtnCanje').disabled = c.saldo < CFG.puntosCanje;
   $('mBtnCanje').textContent = 'Canjear ' + CFG.puntosCanje + ' puntos = ' + pesos(CFG.descuentoCanje);
   $('mBtnVisita').classList.toggle('oculto', !(CFG.puntosVisita > 0));
   const tel = soloNum(c.telefono).slice(-10);
+  const local = MOS_LOCAL ? MOS_LOCAL.nombre : CFG.nombreClub;
   $('mWa').classList.toggle('oculto', tel.length < 10);
-  $('mWa').href = 'https://wa.me/549' + tel + '?text=' + encodeURIComponent('Hola ' + c.nombre + ', te escribimos de Farmacia Luna. Tenés ' + c.saldo + ' puntos acumulados.');
+  $('mWa').href = 'https://wa.me/549' + tel + '?text=' + encodeURIComponent('Hola ' + c.nombre + ', te escribimos de ' + local + '. Tenés ' + c.saldo + ' puntos en ' + CFG.nombreClub + '.');
   $('monto').value = ''; mosPrevia(); mensaje('mAccMsg', '');
 }
 
@@ -616,13 +675,12 @@ function mosCanje() {
   accionMostrador({ accion: 'mostradorCanje' }, r => '✔ Canje hecho. Aplicá ' + pesos(r.descuento) + ' de descuento');
 }
 
-/* --- Link de calificación para ventas por WhatsApp --- */
 async function mosGenerarLink() {
   mensaje('mLinkMsg', ''); ver('mLinkRes', false);
   try {
     const r = await api({ accion: 'mostradorLink', pin: pinActual(), empleado: atendioActual() });
-    const url = location.origin + location.pathname + '?c=' + r.codigo;
-    linkMensaje = '¡Gracias por tu compra en Farmacia Luna! 💚 Calificá la atención de ' + r.empleado + ' y sumá puntos: ' + url;
+    const url = base() + '?c=' + r.codigo + '&l=' + encodeURIComponent(r.local.id);
+    linkMensaje = '¡Gracias por tu compra en ' + r.local.nombre + '! 💚 Calificá la atención de ' + r.empleado + ' y sumá puntos: ' + url;
     $('mLinkTxt').textContent = linkMensaje;
     const tel = mosCli ? soloNum(mosCli.telefono).slice(-10) : '';
     $('mLinkWa').href = (tel.length === 10 ? 'https://wa.me/549' + tel : 'https://wa.me/') + '?text=' + encodeURIComponent(linkMensaje);
@@ -641,6 +699,8 @@ async function mosCopiarLink() {
 }
 
 /* ---------------- RANKING ---------------- */
+const ORDENES = [['calif', 'Mejor calificación'], ['suma', 'Más estrellas'], ['ventas', 'Más ventas']];
+
 async function rankEntrar() {
   mensaje('rPinMsg', '');
   pinAdmin = $('rPinIn').value.trim();
@@ -654,56 +714,114 @@ async function rankEntrar() {
 
 async function rankCargar(lanzar) {
   try {
-    const r = await api({ accion: 'adminRanking', pin: pinAdmin, mes: $('rMes').value || mesActual() });
-    $('rInfo').textContent = 'Gana el mejor promedio de estrellas entre quienes tienen al menos ' + r.minimo +
-      ' calificaciones en el mes. Si hay empate, gana el que tiene más calificaciones.';
-    if (!r.ranking.length) {
-      $('rLista').innerHTML = '<li><span class="muted">Todavía no hay calificaciones en este mes.</span></li>';
-      return;
-    }
-    let pos = 0;
-    $('rLista').innerHTML = r.ranking.map(e => {
-      const p = e.compite ? ++pos : 0;
-      const cls = !e.compite ? 'fuera' : p === 1 ? 'oro' : p === 2 ? 'plata' : p === 3 ? 'bronce' : '';
-      const det = e.cantidad + (e.cantidad === 1 ? ' calificación' : ' calificaciones') +
-        (e.compite ? '' : ' · le faltan ' + (r.minimo - e.cantidad) + ' para competir');
-      return '<li class="' + cls + '"><div class="pos">' + (p || '–') + '</div>' +
-        '<div class="nom">' + esc(e.empleado) + '<small>' + det + '</small></div>' +
-        '<div class="prom">' + Number(e.promedio).toFixed(2) + ' ★</div></li>';
-    }).join('');
+    RANK = await api({ accion: 'adminRanking', pin: pinAdmin, mes: $('rMes').value || mesActual() });
+    rankChips(); rankPintar();
   } catch (e) {
     if (lanzar) throw e;
     alert(e.message);
   }
 }
 
+function rankChips() {
+  const vistas = [['general', 'General']].concat(RANK.porLocal.map(b => [b.local, b.local]));
+  if (!vistas.some(v => v[0] === rankVista)) rankVista = 'general';
+  $('rVistas').innerHTML = '';
+  vistas.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (v[0] === rankVista ? ' on' : ''); b.textContent = v[1];
+    b.onclick = () => { rankVista = v[0]; rankChips(); rankPintar(); };
+    $('rVistas').appendChild(b);
+  });
+  $('rOrdenes').innerHTML = '';
+  ORDENES.forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (o[0] === rankOrden ? ' on' : ''); b.textContent = o[1];
+    b.onclick = () => { rankOrden = o[0]; rankChips(); rankPintar(); };
+    $('rOrdenes').appendChild(b);
+  });
+}
+
+function rankPintar() {
+  const general = rankVista === 'general';
+  const bloque = general ? null : RANK.porLocal.find(b => b.local === rankVista);
+  const lista = (general ? RANK.general : (bloque ? bloque.ranking : [])).slice();
+  if (rankOrden === 'ventas') lista.sort((a, b) => b.ventas - a.ventas);
+  else if (rankOrden === 'suma') lista.sort((a, b) => (b.suma - a.suma) || (b.promedio - a.promedio));
+  $('rInfo').textContent = rankOrden === 'calif'
+    ? 'El premio de cada local es para el mejor promedio con al menos ' + RANK.minimo + ' calificaciones en el mes (1°, 2° y 3°). Si hay empate, gana el que tiene más calificaciones.'
+    : rankOrden === 'ventas' ? 'Total vendido en el mes según las compras cargadas en el mostrador.'
+    : 'Suma de todas las estrellas recibidas en el mes.';
+  if (!lista.length) {
+    $('rLista').innerHTML = '<li><span class="muted">No hay empleados cargados en este local.</span></li>';
+    return;
+  }
+  let pos = 0;
+  $('rLista').innerHTML = lista.map((e, i) => {
+    const p = rankOrden === 'calif' ? (e.compite ? ++pos : 0) : i + 1;
+    const fuera = rankOrden === 'calif' && !e.compite;
+    const cls = fuera ? 'fuera' : p === 1 ? 'oro' : p === 2 ? 'plata' : p === 3 ? 'bronce' : '';
+    const valor = rankOrden === 'ventas' ? pesos(e.ventas) : rankOrden === 'suma' ? e.suma + ' ★' : Number(e.promedio).toFixed(2) + ' ★';
+    const det = (general ? e.local + ' · ' : '') + e.cantidad + (e.cantidad === 1 ? ' calificación' : ' calificaciones') +
+      ' · ' + pesos(e.ventas) + (fuera ? ' · le faltan ' + Math.max(RANK.minimo - e.cantidad, 1) + ' para competir' : '');
+    return '<li class="' + cls + '"><div class="pos">' + (p || '–') + '</div>' +
+      '<div class="nom">' + esc(e.empleado) + '<small>' + esc(det) + '</small></div>' +
+      '<div class="prom">' + esc(valor) + '</div></li>';
+  }).join('');
+}
+
 function rankSalir() {
-  pinAdmin = ''; $('rPinIn').value = '';
+  pinAdmin = ''; $('rPinIn').value = ''; RANK = null;
   ver('rPanel', false); ver('rPin', true);
+}
+
+/* ---------------- QR ---------------- */
+function mostrarQr() {
+  const loc = localPorId(LOCAL_ID);
+  if (!loc) {
+    ver('qrElegir', true); ver('qrCartel', false);
+    $('qrLocales').innerHTML = '';
+    CFG.locales.forEach(l => {
+      const a = document.createElement('a');
+      a.className = 'btn btn-s'; a.style.marginTop = '0'; a.textContent = l.nombre;
+      a.href = base() + '?modo=qr&l=' + encodeURIComponent(l.id);
+      $('qrLocales').appendChild(a);
+    });
+    return;
+  }
+  ver('qrElegir', false); ver('qrCartel', true);
+  $('subtitulo').textContent = loc.nombre;
+  $('qrTitulo').textContent = 'Sumá puntos en ' + loc.nombre;
+  $('qrPie').textContent = 'Compras · Visitas · Opiniones = descuentos en todos los locales de ' + CFG.nombreClub;
+  new QRCode($('qrcode'), { text: base() + '?l=' + encodeURIComponent(loc.id), width: 260, height: 260, colorDark: '#14532F' });
 }
 
 /* ---------------- INICIO ---------------- */
 async function iniciar() {
   const params = new URLSearchParams(location.search);
   const modo = params.get('modo');
+  LOCAL_ID = params.get('l') || '';
   try { const r = await api({ accion: 'config' }); Object.assign(CFG, r); } catch (e) {}
+  pintarMarca();
   pintarReglas();
+  if (LOCAL_ID && !localPorId(LOCAL_ID)) LOCAL_ID = '';
 
-  if (modo === 'qr') {
-    ver('vCliente', false); ver('vQr', true); $('subtitulo').textContent = 'Club de puntos';
-    new QRCode($('qrcode'), { text: location.origin + location.pathname, width: 260, height: 260, colorDark: '#14532F' });
-    return;
-  }
+  if (modo === 'qr') { ver('vCliente', false); ver('vQr', true); mostrarQr(); return; }
+
   if (modo === 'mostrador') {
     ver('vCliente', false); ver('vMostrador', true); $('subtitulo').textContent = 'Mostrador';
     $('buscar').addEventListener('keydown', e => { if (e.key === 'Enter') mosBuscar(); });
     $('pin').addEventListener('keydown', e => { if (e.key === 'Enter') mosEntrar(); });
-    if (leer('lunaPin')) {
+    if (leer('clubPin')) {
       ver('mPin', false);
-      if (leer('lunaAtendio')) mosElegir(leer('lunaAtendio')); else mosQuien();
+      try {
+        const r = await api({ accion: 'mostradorEntrar', pin: leer('clubPin') });
+        aplicarLocalMostrador(r);
+        if (leer('clubAtendio')) mosElegir(leer('clubAtendio')); else mosMostrarQuien();
+      } catch (e) { mosSalir(); mensaje('mPinMsg', e.message); }
     }
     return;
   }
+
   if (modo === 'ranking') {
     ver('vCliente', false); ver('vRanking', true); $('subtitulo').textContent = 'Ranking de atención';
     $('rMes').value = mesActual();
@@ -711,15 +829,17 @@ async function iniciar() {
     return;
   }
 
-  // Cliente que llega desde un link de WhatsApp
+  // Cliente
+  const locQr = localPorId(LOCAL_ID);
+  if (locQr) $('subtitulo').textContent = locQr.nombre;
   const codigo = params.get('c');
   if (codigo) {
     try {
       const r = await api({ accion: 'infoLink', codigo });
-      codigoLink = codigo; empLink = r.empleado;
-      $('cDniTxt').textContent = empLink + ' te atendió por WhatsApp. Ingresá tu DNI para calificar su atención y sumar puntos.';
+      codigoLink = codigo; empLink = r.empleado; locLink = r.local;
+      $('cDniTxt').textContent = empLink + ' te atendió por WhatsApp' + (locLink ? ' (' + locLink + ')' : '') + '. Ingresá tu DNI para calificar su atención y sumar puntos.';
     } catch (e) {
-      history.replaceState(null, '', location.pathname);
+      limpiarLink();
       mensaje('cDniMsg', e.message);
     }
   }
@@ -732,7 +852,7 @@ async function iniciar() {
       pendHasta = Date.now() + 10 * 60000; detenerEspera(); buscarPendiente();
     }
   });
-  const dniGuardado = leer('lunaDni');
+  const dniGuardado = leer('clubDni') || leer('lunaDni');
   if (dniGuardado) { $('dni').value = dniGuardado; cliConsultar(dniGuardado); }
 }
 iniciar();
