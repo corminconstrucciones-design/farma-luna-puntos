@@ -70,6 +70,24 @@
   .qr{text-align:center}
   .qr #qrcode{display:inline-block;padding:16px;background:#fff;border-radius:16px;margin:10px 0}
   .qr h2{font-size:28px}
+  /* Concurso de atención */
+  .califica{border:2px solid var(--amarillo)}
+  .empleados{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .empleados .btn{margin-top:0;font-size:17px;padding:14px 10px}
+  .atiende{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--verde-claro);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:700;color:var(--verde-osc)}
+  .atiende button{background:none;border:0;text-decoration:underline;color:var(--verde-osc);font:inherit;font-size:14px;cursor:pointer;padding:0}
+  .linkbox{background:var(--fondo);border-radius:12px;padding:12px;font-size:14px;word-break:break-all;margin-top:12px}
+  .rank{list-style:none;padding:0;margin:0}
+  .rank li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--borde)}
+  .rank li:last-child{border-bottom:0}
+  .rank .pos{width:38px;height:38px;border-radius:50%;background:var(--verde-claro);display:grid;place-items:center;font-weight:800;color:var(--verde-osc);flex:none}
+  .rank li.oro .pos{background:#F4B400;color:#fff}
+  .rank li.plata .pos{background:#9AA5A0;color:#fff}
+  .rank li.bronce .pos{background:#C27C3E;color:#fff}
+  .rank .nom{flex:1;font-weight:700;min-width:0}
+  .rank .nom small{display:block;color:var(--suave);font-weight:600;font-size:13px}
+  .rank .prom{font-size:20px;font-weight:800;color:var(--verde);white-space:nowrap}
+  .rank li.fuera{opacity:.55}
   @media print{header .modo,.noprint{display:none!important}.card{border:0}}
 </style>
 </head>
@@ -85,7 +103,7 @@
     <!-- Paso 1: DNI -->
     <div id="cDni" class="card">
       <h2>¡Hola! 👋</h2>
-      <p class="muted">Ingresá tu DNI para ver tus puntos. Si es tu primera vez, te registrás en 30 segundos.</p>
+      <p class="muted" id="cDniTxt">Ingresá tu DNI para ver tus puntos. Si es tu primera vez, te registrás en 30 segundos.</p>
       <label for="dni">Tu DNI</label>
       <input id="dni" class="grande" inputmode="numeric" maxlength="10" placeholder="12345678" autocomplete="off">
       <button class="btn btn-p" onclick="cliConsultar()">Continuar</button>
@@ -116,6 +134,21 @@
         <div class="lbl">puntos</div>
         <div class="desc" id="cDesc"></div>
         <div class="barra"><i id="cBarra" style="width:0"></i></div>
+      </div>
+
+      <!-- Calificación de la atención del día -->
+      <div id="cCalifica" class="card califica oculto">
+        <h2 id="cCalTit">¿Cómo te atendieron hoy?</h2>
+        <p class="muted" id="cCalTxt"></p>
+        <div class="estrellas" id="estrellasAt"></div>
+        <textarea id="calComentario" placeholder="Si querés, contanos algo más (opcional)"></textarea>
+        <button class="btn btn-p" onclick="cliCalificar()">Enviar calificación</button>
+        <div id="cCalMsg"></div>
+      </div>
+
+      <div id="cCalGracias" class="card oculto">
+        <h2>¡Gracias! 💚</h2>
+        <p id="cCalGraciasTxt" style="margin:0"></p>
       </div>
 
       <div id="cResena" class="card oculto">
@@ -149,16 +182,33 @@
   <section id="vMostrador" class="oculto">
     <div id="mPin" class="card">
       <h2>Mostrador</h2>
-      <p class="muted">Ingresá el PIN y tu nombre.</p>
+      <p class="muted">Ingresá el PIN del mostrador.</p>
       <label for="pin">PIN</label>
       <input id="pin" class="grande" inputmode="numeric" type="password" maxlength="8">
-      <label for="atendio">Tu nombre</label>
-      <input id="atendio" placeholder="Ej.: Laura">
       <button class="btn btn-p" onclick="mosEntrar()">Entrar</button>
       <div id="mPinMsg"></div>
     </div>
 
+    <!-- Quién atiende -->
+    <div id="mQuien" class="card oculto">
+      <h2>¿Quién atiende?</h2>
+      <p class="muted">Tocá tu nombre. Las compras y visitas que cargues quedan a tu nombre para el concurso.</p>
+      <div id="mEmpleados" class="empleados"></div>
+      <div id="mManual" class="oculto">
+        <label for="atendio">Tu nombre</label>
+        <input id="atendio" placeholder="Ej.: Laura">
+        <button class="btn btn-p" onclick="mosElegir($('atendio').value.trim())">Empezar</button>
+      </div>
+      <div id="mQuienMsg"></div>
+      <button class="link" onclick="mosSalir()">Cerrar mostrador</button>
+    </div>
+
     <div id="mPanel" class="oculto">
+      <div class="atiende">
+        <span>Atiende: <span id="mAtiende"></span></span>
+        <button onclick="mosQuien()">Cambiar</button>
+      </div>
+
       <div class="card">
         <label for="buscar" style="margin-top:0">Buscar cliente por DNI o teléfono</label>
         <div class="fila">
@@ -206,7 +256,43 @@
           <div id="mAccMsg"></div>
         </div>
       </div>
+
+      <!-- Venta por WhatsApp: link de calificación -->
+      <div class="card">
+        <h2 style="font-size:18px">Venta por WhatsApp</h2>
+        <p class="muted">Generá un link para que el cliente califique tu atención. Sirve una sola vez.</p>
+        <button class="btn btn-wa" onclick="mosGenerarLink()">Generar link de calificación</button>
+        <div id="mLinkRes" class="oculto">
+          <div class="linkbox" id="mLinkTxt"></div>
+          <button class="btn btn-s" onclick="mosCopiarLink()">Copiar mensaje</button>
+          <a class="btn btn-g" id="mLinkWa" target="_blank" rel="noopener">Abrir en WhatsApp</a>
+        </div>
+        <div id="mLinkMsg"></div>
+      </div>
+
       <button class="link" onclick="mosSalir()">Cerrar mostrador</button>
+    </div>
+  </section>
+
+  <!-- ================= RANKING ================= -->
+  <section id="vRanking" class="oculto">
+    <div id="rPin" class="card">
+      <h2>Ranking de atención</h2>
+      <p class="muted">Ingresá el PIN de administrador.</p>
+      <label for="rPinIn">PIN</label>
+      <input id="rPinIn" class="grande" inputmode="numeric" type="password" maxlength="8">
+      <button class="btn btn-p" onclick="rankEntrar()">Ver ranking</button>
+      <div id="rPinMsg"></div>
+    </div>
+    <div id="rPanel" class="oculto">
+      <div class="card">
+        <label for="rMes" style="margin-top:0">Mes</label>
+        <input id="rMes" type="month" placeholder="aaaa-mm" onchange="rankCargar()">
+        <p class="muted" id="rInfo" style="margin:10px 0 0"></p>
+      </div>
+      <div class="card"><ul class="rank" id="rLista"></ul></div>
+      <button class="btn btn-s" onclick="rankCargar()">Actualizar</button>
+      <button class="link" onclick="rankSalir()">Salir</button>
     </div>
   </section>
 
@@ -230,6 +316,8 @@ const API = 'https://script.google.com/macros/s/AKfycbxYhtkA6B0V3l58wjEvmllzAKCT
 
 let CFG = { pesosPorPunto:1000, puntosVisita:5, puntosResena:50, puntosCanje:100, descuentoCanje:1000, whatsapp:'' };
 let clienteDni = '', estrellasSel = 0, mosCli = null;
+let estrellasAt = 0, codigoLink = '', empLink = '', pendTimer = null, pendHasta = 0;
+let linkMensaje = '', pinAdmin = '';
 
 const $ = id => document.getElementById(id);
 const ver = (id, si) => $(id).classList.toggle('oculto', !si);
@@ -237,13 +325,15 @@ const pesos = n => '$' + Number(n || 0).toLocaleString('es-AR');
 const soloNum = s => String(s || '').replace(/\D/g, '');
 const guardar = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 const leer = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const mesActual = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
 
 function mensaje(id, texto, ok) {
-  $(id).innerHTML = texto ? '<div class="msg ' + (ok ? 'ok' : 'err') + '">' + texto + '</div>' : '';
+  $(id).innerHTML = texto ? '<div class="msg ' + (ok ? 'ok' : 'err') + '">' + esc(texto) + '</div>' : '';
 }
 
-async function api(datos) {
-  ver('cargando', true);
+async function api(datos, silencioso) {
+  if (!silencioso) ver('cargando', true);
   try {
     const r = await fetch(API, { method: 'POST', body: JSON.stringify(datos) });
     const j = await r.json();
@@ -253,7 +343,7 @@ async function api(datos) {
     if (e instanceof TypeError) throw new Error('Sin conexión. Revisá internet e intentá de nuevo.');
     throw e;
   } finally {
-    ver('cargando', false);
+    if (!silencioso) ver('cargando', false);
   }
 }
 
@@ -267,6 +357,19 @@ function textoSaldo(saldo) {
   if (d > 0) return 'Tenés ' + pesos(d) + ' de descuento para usar 🎉';
   return 'Te faltan ' + (CFG.puntosCanje - saldo) + ' puntos para ' + pesos(CFG.descuentoCanje) + ' de descuento';
 }
+
+function pintarEstrellas(boxId, valor, alElegir) {
+  const box = $(boxId); box.innerHTML = '';
+  for (let i = 1; i <= 5; i++) {
+    const b = document.createElement('button');
+    b.textContent = '★'; b.className = i <= valor ? 'on' : '';
+    b.setAttribute('aria-label', i + ' estrellas');
+    b.onclick = () => alElegir(i);
+    box.appendChild(b);
+  }
+}
+const pintarResena = () => pintarEstrellas('estrellas', estrellasSel, i => { estrellasSel = i; pintarResena(); });
+const pintarAtencion = () => pintarEstrellas('estrellasAt', estrellasAt, i => { estrellasAt = i; pintarAtencion(); });
 
 /* ---------------- CLIENTE ---------------- */
 async function cliConsultar(dniGuardado) {
@@ -295,8 +398,9 @@ async function cliRegistrar() {
   } catch (e) { mensaje('cRegMsg', e.message); }
 }
 
-function mostrarPuntos(c) {
+function mostrarPuntos(c, sinRevisar) {
   ver('cDni', false); ver('cRegistro', false); ver('cPuntos', true); ver('cGracias', false);
+  ver('cCalifica', false); ver('cCalGracias', false);
   $('cHola').textContent = 'Hola, ' + (String(c.nombre).split(' ')[0] || '') + '. Tenés';
   $('cSaldo').textContent = c.saldo;
   $('cDesc').textContent = textoSaldo(c.saldo);
@@ -304,17 +408,58 @@ function mostrarPuntos(c) {
   $('cBarra').style.width = avance + '%';
   ver('cResena', !c.dejoResena);
   $('cResenaTxt').textContent = CFG.puntosResena > 0 ? 'Contanos y sumá ' + CFG.puntosResena + ' puntos. Te lleva 10 segundos.' : 'Contanos, te lleva 10 segundos.';
-  estrellasSel = 0; pintarEstrellas(); $('resComentario').value = ''; mensaje('cResMsg', '');
+  estrellasSel = 0; pintarResena(); $('resComentario').value = ''; mensaje('cResMsg', '');
+  if (!sinRevisar) revisarCalificacion();
 }
 
-function pintarEstrellas() {
-  const box = $('estrellas'); box.innerHTML = '';
-  for (let i = 1; i <= 5; i++) {
-    const b = document.createElement('button');
-    b.textContent = '★'; b.className = i <= estrellasSel ? 'on' : '';
-    b.setAttribute('aria-label', i + ' estrellas');
-    b.onclick = () => { estrellasSel = i; pintarEstrellas(); };
-    box.appendChild(b);
+/* --- Calificación de la atención --- */
+function revisarCalificacion() {
+  detenerEspera();
+  if (codigoLink) { abrirCalifica(empLink, 'te atendió por WhatsApp'); return; }
+  pendHasta = Date.now() + 10 * 60000;   // sigue buscando hasta 10 minutos
+  buscarPendiente();
+}
+
+async function buscarPendiente() {
+  if (!clienteDni || $('cPuntos').classList.contains('oculto') || !$('cCalifica').classList.contains('oculto')) return;
+  try {
+    const r = await api({ accion: 'calificacionPendiente', dni: clienteDni }, true);
+    if (r.pendiente) { abrirCalifica(r.empleado, '', r.puntos); return; }
+  } catch (e) {
+    if (/desconocida/i.test(e.message)) return;
+  }
+  if (Date.now() < pendHasta) pendTimer = setTimeout(buscarPendiente, 15000);
+}
+
+function detenerEspera() { clearTimeout(pendTimer); pendTimer = null; }
+
+function abrirCalifica(empleado, canalTxt, puntos) {
+  detenerEspera();
+  estrellasAt = 0; pintarAtencion(); $('calComentario').value = ''; mensaje('cCalMsg', '');
+  $('cCalTit').textContent = '¿Cómo te atendió ' + empleado + '?';
+  const pts = puntos === undefined ? 'Calificá su atención y sumá puntos.'
+    : puntos > 0 ? 'Calificá su atención y sumá ' + puntos + (puntos === 1 ? ' punto.' : ' puntos.')
+    : 'Tu opinión nos ayuda a mejorar.';
+  $('cCalTxt').textContent = (canalTxt ? empleado + ' ' + canalTxt + '. ' : '') + pts;
+  ver('cResena', false); ver('cGracias', false); ver('cCalGracias', false);
+  ver('cCalifica', true);
+}
+
+async function cliCalificar() {
+  mensaje('cCalMsg', '');
+  if (!estrellasAt) return mensaje('cCalMsg', 'Tocá las estrellas para calificar');
+  try {
+    const datos = { accion: 'calificar', dni: clienteDni, estrellas: estrellasAt, comentario: $('calComentario').value };
+    if (codigoLink) datos.codigo = codigoLink;
+    const r = await api(datos);
+    if (codigoLink) { codigoLink = ''; empLink = ''; history.replaceState(null, '', location.pathname); }
+    mostrarPuntos(r.cliente, true);
+    ver('cCalGracias', true);
+    $('cCalGraciasTxt').textContent = 'Tu calificación para ' + r.empleado + ' quedó registrada.' +
+      (r.puntosGanados > 0 ? ' Sumaste ' + r.puntosGanados + (r.puntosGanados === 1 ? ' punto.' : ' puntos.') : '');
+  } catch (e) {
+    mensaje('cCalMsg', e.message);
+    if (codigoLink && /usado|venció|válido/.test(e.message)) { codigoLink = ''; empLink = ''; history.replaceState(null, '', location.pathname); }
   }
 }
 
@@ -323,7 +468,7 @@ async function cliResena() {
   if (!estrellasSel) return mensaje('cResMsg', 'Tocá las estrellas para calificar');
   try {
     const r = await api({ accion: 'resena', dni: clienteDni, estrellas: estrellasSel, comentario: $('resComentario').value });
-    mostrarPuntos(r.cliente);
+    mostrarPuntos(r.cliente, true);
     ver('cResena', false); ver('cGracias', true);
     $('cGraciasTxt').textContent = r.puntosGanados > 0 ? 'Sumaste ' + r.puntosGanados + ' puntos por tu opinión.' : 'Tu opinión nos ayuda a mejorar.';
     ver('cGoogle', !!r.invitarGoogle);
@@ -332,6 +477,7 @@ async function cliResena() {
 }
 
 function cliSalir() {
+  detenerEspera();
   guardar('lunaDni', null); clienteDni = ''; $('dni').value = '';
   ver('cPuntos', false); ver('cRegistro', false); ver('cDni', true); mensaje('cDniMsg', '');
 }
@@ -349,17 +495,46 @@ function pintarReglas() {
 /* ---------------- MOSTRADOR ---------------- */
 async function mosEntrar() {
   mensaje('mPinMsg', '');
-  if (!$('atendio').value.trim()) return mensaje('mPinMsg', 'Poné tu nombre');
+  const pin = $('pin').value.trim();
+  if (!pin) return mensaje('mPinMsg', 'Poné el PIN');
   try {
-    await api({ accion: 'mostradorBuscar', pin: $('pin').value, q: '0' });
-    guardar('lunaPin', $('pin').value); guardar('lunaAtendio', $('atendio').value.trim());
-    ver('mPin', false); ver('mPanel', true); $('buscar').focus();
+    await api({ accion: 'mostradorBuscar', pin, q: '0' });
+    guardar('lunaPin', pin);
+    ver('mPin', false);
+    await mosQuien();
   } catch (e) { mensaje('mPinMsg', e.message); }
 }
 
+async function mosQuien() {
+  ver('mPanel', false); ver('mQuien', true); mensaje('mQuienMsg', '');
+  let lista = [];
+  try {
+    lista = (await api({ accion: 'mostradorEmpleados', pin: pinActual() })).empleados || [];
+  } catch (e) {
+    if (/PIN/.test(e.message)) return mosSalir();
+  }
+  const box = $('mEmpleados'); box.innerHTML = '';
+  lista.forEach(emp => {
+    const b = document.createElement('button');
+    b.className = 'btn btn-s'; b.textContent = emp.nombre;
+    b.onclick = () => mosElegir(emp.nombre);
+    box.appendChild(b);
+  });
+  ver('mManual', !lista.length);   // si no hay empleados cargados, se escribe el nombre a mano
+}
+
+function mosElegir(nombre) {
+  if (!nombre) return mensaje('mQuienMsg', 'Elegí o escribí tu nombre');
+  guardar('lunaAtendio', nombre); $('atendio').value = nombre;
+  $('mAtiende').textContent = nombre;
+  ver('mQuien', false); ver('mPanel', true); ver('mLinkRes', false); mensaje('mLinkMsg', '');
+  $('buscar').focus();
+}
+
 function mosSalir() {
-  guardar('lunaPin', null); $('pin').value = ''; mosCli = null;
-  ver('mPanel', false); ver('mCliente', false); ver('mNuevo', false); ver('mPin', true);
+  guardar('lunaPin', null); guardar('lunaAtendio', null); $('pin').value = ''; mosCli = null;
+  ver('mPanel', false); ver('mCliente', false); ver('mNuevo', false); ver('mQuien', false); ver('mLinkRes', false);
+  ver('mPin', true);
 }
 
 const pinActual = () => leer('lunaPin') || $('pin').value;
@@ -441,9 +616,76 @@ function mosCanje() {
   accionMostrador({ accion: 'mostradorCanje' }, r => '✔ Canje hecho. Aplicá ' + pesos(r.descuento) + ' de descuento');
 }
 
+/* --- Link de calificación para ventas por WhatsApp --- */
+async function mosGenerarLink() {
+  mensaje('mLinkMsg', ''); ver('mLinkRes', false);
+  try {
+    const r = await api({ accion: 'mostradorLink', pin: pinActual(), empleado: atendioActual() });
+    const url = location.origin + location.pathname + '?c=' + r.codigo;
+    linkMensaje = '¡Gracias por tu compra en Farmacia Luna! 💚 Calificá la atención de ' + r.empleado + ' y sumá puntos: ' + url;
+    $('mLinkTxt').textContent = linkMensaje;
+    const tel = mosCli ? soloNum(mosCli.telefono).slice(-10) : '';
+    $('mLinkWa').href = (tel.length === 10 ? 'https://wa.me/549' + tel : 'https://wa.me/') + '?text=' + encodeURIComponent(linkMensaje);
+    $('mLinkWa').textContent = tel.length === 10 ? 'Enviar a ' + mosCli.nombre + ' por WhatsApp' : 'Abrir en WhatsApp';
+    ver('mLinkRes', true);
+  } catch (e) { mensaje('mLinkMsg', e.message); if (/PIN/.test(e.message)) mosSalir(); }
+}
+
+async function mosCopiarLink() {
+  try {
+    await navigator.clipboard.writeText(linkMensaje);
+    mensaje('mLinkMsg', 'Mensaje copiado ✔ Pegalo en el chat del cliente.', true);
+  } catch (e) {
+    mensaje('mLinkMsg', 'No se pudo copiar solo. Seleccioná el texto de arriba y copialo a mano.');
+  }
+}
+
+/* ---------------- RANKING ---------------- */
+async function rankEntrar() {
+  mensaje('rPinMsg', '');
+  pinAdmin = $('rPinIn').value.trim();
+  if (!pinAdmin) return mensaje('rPinMsg', 'Poné el PIN');
+  if (!$('rMes').value) $('rMes').value = mesActual();
+  try {
+    await rankCargar(true);
+    ver('rPin', false); ver('rPanel', true);
+  } catch (e) { mensaje('rPinMsg', e.message); }
+}
+
+async function rankCargar(lanzar) {
+  try {
+    const r = await api({ accion: 'adminRanking', pin: pinAdmin, mes: $('rMes').value || mesActual() });
+    $('rInfo').textContent = 'Gana el mejor promedio de estrellas entre quienes tienen al menos ' + r.minimo +
+      ' calificaciones en el mes. Si hay empate, gana el que tiene más calificaciones.';
+    if (!r.ranking.length) {
+      $('rLista').innerHTML = '<li><span class="muted">Todavía no hay calificaciones en este mes.</span></li>';
+      return;
+    }
+    let pos = 0;
+    $('rLista').innerHTML = r.ranking.map(e => {
+      const p = e.compite ? ++pos : 0;
+      const cls = !e.compite ? 'fuera' : p === 1 ? 'oro' : p === 2 ? 'plata' : p === 3 ? 'bronce' : '';
+      const det = e.cantidad + (e.cantidad === 1 ? ' calificación' : ' calificaciones') +
+        (e.compite ? '' : ' · le faltan ' + (r.minimo - e.cantidad) + ' para competir');
+      return '<li class="' + cls + '"><div class="pos">' + (p || '–') + '</div>' +
+        '<div class="nom">' + esc(e.empleado) + '<small>' + det + '</small></div>' +
+        '<div class="prom">' + Number(e.promedio).toFixed(2) + ' ★</div></li>';
+    }).join('');
+  } catch (e) {
+    if (lanzar) throw e;
+    alert(e.message);
+  }
+}
+
+function rankSalir() {
+  pinAdmin = ''; $('rPinIn').value = '';
+  ver('rPanel', false); ver('rPin', true);
+}
+
 /* ---------------- INICIO ---------------- */
 async function iniciar() {
-  const modo = new URLSearchParams(location.search).get('modo');
+  const params = new URLSearchParams(location.search);
+  const modo = params.get('modo');
   try { const r = await api({ accion: 'config' }); Object.assign(CFG, r); } catch (e) {}
   pintarReglas();
 
@@ -454,12 +696,42 @@ async function iniciar() {
   }
   if (modo === 'mostrador') {
     ver('vCliente', false); ver('vMostrador', true); $('subtitulo').textContent = 'Mostrador';
-    $('atendio').value = leer('lunaAtendio');
-    if (leer('lunaPin')) { ver('mPin', false); ver('mPanel', true); }
     $('buscar').addEventListener('keydown', e => { if (e.key === 'Enter') mosBuscar(); });
+    $('pin').addEventListener('keydown', e => { if (e.key === 'Enter') mosEntrar(); });
+    if (leer('lunaPin')) {
+      ver('mPin', false);
+      if (leer('lunaAtendio')) mosElegir(leer('lunaAtendio')); else mosQuien();
+    }
     return;
   }
+  if (modo === 'ranking') {
+    ver('vCliente', false); ver('vRanking', true); $('subtitulo').textContent = 'Ranking de atención';
+    $('rMes').value = mesActual();
+    $('rPinIn').addEventListener('keydown', e => { if (e.key === 'Enter') rankEntrar(); });
+    return;
+  }
+
+  // Cliente que llega desde un link de WhatsApp
+  const codigo = params.get('c');
+  if (codigo) {
+    try {
+      const r = await api({ accion: 'infoLink', codigo });
+      codigoLink = codigo; empLink = r.empleado;
+      $('cDniTxt').textContent = empLink + ' te atendió por WhatsApp. Ingresá tu DNI para calificar su atención y sumar puntos.';
+    } catch (e) {
+      history.replaceState(null, '', location.pathname);
+      mensaje('cDniMsg', e.message);
+    }
+  }
+
   $('dni').addEventListener('keydown', e => { if (e.key === 'Enter') cliConsultar(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && clienteDni && !codigoLink &&
+        !$('cPuntos').classList.contains('oculto') && $('cCalifica').classList.contains('oculto') &&
+        $('cCalGracias').classList.contains('oculto')) {
+      pendHasta = Date.now() + 10 * 60000; detenerEspera(); buscarPendiente();
+    }
+  });
   const dniGuardado = leer('lunaDni');
   if (dniGuardado) { $('dni').value = dniGuardado; cliConsultar(dniGuardado); }
 }
