@@ -251,21 +251,28 @@
           <button class="btn btn-p" onclick="mosCompra()">Sumar compra</button>
           <button class="btn btn-s" onclick="mosVisita()" id="mBtnVisita">Sumar visita (sin compra)</button>
           <button class="btn btn-g" onclick="mosCanje()" id="mBtnCanje">Canjear puntos</button>
-          <a class="btn btn-wa" id="mWa" target="_blank" rel="noopener">WhatsApp al cliente</a>
           <div id="mAccMsg"></div>
+          <div id="mMsgBox" class="oculto">
+            <div class="linkbox" id="mMsgTxt"></div>
+            <button class="btn btn-wa" id="mWa" onclick="mosEnviarWa()">Enviar mensaje por WhatsApp</button>
+            <button class="link" onclick="copiarTexto(MSG_CLIENTE, 'mMsgAviso')">Copiar mensaje</button>
+            <div id="mMsgAviso"></div>
+          </div>
         </div>
       </div>
 
       <div class="card">
-        <h2 style="font-size:18px">Venta por WhatsApp</h2>
-        <p class="muted">Generá un link para que el cliente califique tu atención. Sirve una sola vez.</p>
-        <button class="btn btn-wa" onclick="mosGenerarLink()">Generar link de calificación</button>
-        <div id="mLinkRes" class="oculto">
-          <div class="linkbox" id="mLinkTxt"></div>
-          <button class="btn btn-s" onclick="mosCopiarLink()">Copiar mensaje</button>
-          <a class="btn btn-g" id="mLinkWa" target="_blank" rel="noopener">Abrir en WhatsApp</a>
-        </div>
-        <div id="mLinkMsg"></div>
+        <h2 style="font-size:18px">Invitar al club por WhatsApp</h2>
+        <p class="muted">Para clientes que compran por WhatsApp y todavía no están registrados. Es el mismo link del QR del local: se registran, suman puntos y dejan su reseña en Google.</p>
+        <button class="btn btn-wa" onclick="mosInvitar()">Enviar invitación por WhatsApp</button>
+        <button class="link" onclick="copiarTexto(textoInvitacion(), 'mInvAviso')">Copiar invitación</button>
+        <div id="mInvAviso"></div>
+      </div>
+
+      <div class="card">
+        <label style="margin-top:0">Abrir WhatsApp con</label>
+        <div class="chips" id="mWaModo"></div>
+        <p class="muted" style="margin:10px 0 0">"App de escritorio" es lo más rápido si tenés WhatsApp instalado en esta computadora.</p>
       </div>
 
       <a class="link" id="mQrLink" target="_blank" rel="noopener">Ver / imprimir el QR de este local</a>
@@ -326,7 +333,7 @@ let CFG = { pesosPorPunto:1000, puntosVisita:5, puntosResena:50, puntosCanje:100
             nombreClub:'Club de Puntos', logo:'', locales:[] };
 let clienteDni = '', estrellasSel = 0, mosCli = null, cliActual = null;
 let estrellasAt = 0, codigoLink = '', empLink = '', locLink = '', pendTimer = null, pendHasta = 0;
-let linkMensaje = '', pinAdmin = '', LOCAL_ID = '', MOS_LOCAL = null, MOS_EMPLEADOS = [];
+let pinAdmin = '', LOCAL_ID = '', MOS_LOCAL = null, MOS_EMPLEADOS = [];
 let RANK = null, rankVista = 'general', rankOrden = 'calif';
 
 const $ = id => document.getElementById(id);
@@ -588,13 +595,14 @@ function mosElegir(nombre) {
   if (!nombre) return mensaje('mQuienMsg', 'Elegí o escribí tu nombre');
   guardar('clubAtendio', nombre); $('atendio').value = nombre;
   $('mAtiende').textContent = 'Atiende: ' + nombre;
-  ver('mQuien', false); ver('mPanel', true); ver('mLinkRes', false); mensaje('mLinkMsg', '');
+  ver('mQuien', false); ver('mPanel', true); ver('mMsgBox', false); MSG_CLIENTE = '';
+  pintarModoWa();
   $('buscar').focus();
 }
 
 function mosSalir() {
   guardar('clubPin', null); guardar('clubAtendio', null); $('pin').value = ''; mosCli = null; MOS_LOCAL = null;
-  ver('mPanel', false); ver('mCliente', false); ver('mNuevo', false); ver('mQuien', false); ver('mLinkRes', false);
+  ver('mPanel', false); ver('mCliente', false); ver('mNuevo', false); ver('mQuien', false); ver('mMsgBox', false);
   ver('mPin', true); $('subtitulo').textContent = 'Mostrador';
 }
 
@@ -637,12 +645,75 @@ function mosMostrar(c) {
   $('mBtnCanje').disabled = c.saldo < CFG.puntosCanje;
   $('mBtnCanje').textContent = 'Canjear ' + CFG.puntosCanje + ' puntos = ' + pesos(CFG.descuentoCanje);
   $('mBtnVisita').classList.toggle('oculto', !(CFG.puntosVisita > 0));
-  const tel = soloNum(c.telefono).slice(-10);
-  const local = MOS_LOCAL ? MOS_LOCAL.nombre : CFG.nombreClub;
-  $('mWa').classList.toggle('oculto', tel.length < 10);
-  $('mWa').href = 'https://wa.me/549' + tel + '?text=' + encodeURIComponent('Hola ' + c.nombre + ', te escribimos de ' + local + '. Tenés ' + c.saldo + ' puntos en ' + CFG.nombreClub + '.');
   $('monto').value = ''; mosPrevia(); mensaje('mAccMsg', '');
+  ver('mMsgBox', false); mensaje('mMsgAviso', ''); MSG_CLIENTE = '';
 }
+
+/* --- Mensaje único de WhatsApp: puntos + link para calificar --- */
+let MSG_CLIENTE = '';
+
+function armarMensaje(c, linea, r) {
+  const nombre = String(c.nombre || '').split(' ')[0];
+  const local = MOS_LOCAL ? MOS_LOCAL.nombre : CFG.nombreClub;
+  const desc = descuentoDe(c.saldo);
+  const l = ['¡Hola ' + nombre + '! Gracias por elegir ' + local + ' 💚', '', linea,
+    'Ahora tenés *' + c.saldo + ' puntos* en el Club ' + CFG.nombreClub + '. ' +
+    (desc > 0 ? 'Te alcanzan para ' + pesos(desc) + ' de descuento en cualquiera de nuestros locales.'
+              : 'Te faltan ' + (CFG.puntosCanje - c.saldo) + ' para tu descuento de ' + pesos(CFG.descuentoCanje) + '.')];
+  if (r.codigo) {
+    const extra = CFG.puntosCalificar > 0 ? ' y sumá ' + CFG.puntosCalificar + (CFG.puntosCalificar === 1 ? ' punto más' : ' puntos más') : '';
+    l.push('', '⭐ Calificá la atención de ' + r.empleado + extra + ':',
+      base() + '?c=' + r.codigo + (MOS_LOCAL ? '&l=' + encodeURIComponent(MOS_LOCAL.id) : ''));
+  }
+  return l.join('\n');
+}
+
+function modoWa() { return leer('clubWaModo') || 'app'; }
+
+function pintarModoWa() {
+  const box = $('mWaModo'); box.innerHTML = '';
+  [['app', 'App de escritorio'], ['web', 'WhatsApp Web']].forEach(o => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (modoWa() === o[0] ? ' on' : ''); b.textContent = o[1];
+    b.onclick = () => { guardar('clubWaModo', o[0]); pintarModoWa(); };
+    box.appendChild(b);
+  });
+}
+
+// Abre WhatsApp directo (sin pasar por la página intermedia de wa.me)
+function abrirWa(tel, texto) {
+  const t = encodeURIComponent(texto), phone = tel ? '549' + tel : '';
+  if (modoWa() === 'web') {
+    window.open('https://web.whatsapp.com/send?' + (phone ? 'phone=' + phone + '&' : '') + 'text=' + t, 'whatsapp');
+  } else {
+    location.href = 'whatsapp://send?' + (phone ? 'phone=' + phone + '&' : '') + 'text=' + t;
+  }
+}
+
+function mosEnviarWa() {
+  if (!mosCli || !MSG_CLIENTE) return;
+  const tel = soloNum(mosCli.telefono).slice(-10);
+  abrirWa(tel.length === 10 ? tel : '', MSG_CLIENTE);
+}
+
+async function copiarTexto(texto, avisoId) {
+  try {
+    await navigator.clipboard.writeText(texto);
+    mensaje(avisoId, 'Copiado ✔ Pegalo en el chat del cliente.', true);
+  } catch (e) {
+    mensaje(avisoId, 'No se pudo copiar solo. Seleccioná el texto y copialo a mano.');
+  }
+}
+
+/* --- Invitación al club (el mismo link del QR del local) --- */
+function textoInvitacion() {
+  const local = MOS_LOCAL ? MOS_LOCAL.nombre : CFG.nombreClub;
+  return '¡Hola! 👋 Te invitamos al Club de Puntos ' + CFG.nombreClub + ' de ' + local + '.\n' +
+    'Registrate gratis en 30 segundos, sumá puntos con cada compra y canjealos por descuentos en todos nuestros locales:\n' +
+    base() + (MOS_LOCAL ? '?l=' + encodeURIComponent(MOS_LOCAL.id) : '');
+}
+
+function mosInvitar() { abrirWa('', textoInvitacion()); }
 
 function montoActual() { return Number(soloNum($('monto').value)); }
 
@@ -651,51 +722,40 @@ function mosPrevia() {
   $('mPrevia').textContent = m > 0 ? 'Suma ' + Math.floor(m / CFG.pesosPorPunto) + ' puntos' : '';
 }
 
-async function accionMostrador(datos, okTexto) {
+async function accionMostrador(datos, okTexto, lineaMsg) {
   mensaje('mAccMsg', '');
   try {
     const r = await api(Object.assign({ pin: pinActual(), dni: mosCli.dni, atendio: atendioActual() }, datos));
     mosMostrar(r.cliente);
     mensaje('mAccMsg', okTexto(r), true);
+    // Deja listo el mensaje único para WhatsApp (puntos + link de calificación)
+    MSG_CLIENTE = armarMensaje(r.cliente, lineaMsg(r), r);
+    $('mMsgTxt').textContent = MSG_CLIENTE;
+    const tel = soloNum(r.cliente.telefono).slice(-10);
+    $('mWa').textContent = tel.length === 10 ? 'Enviar a ' + r.cliente.nombre + ' por WhatsApp' : 'Abrir WhatsApp (elegí el contacto)';
+    ver('mMsgBox', true);
   } catch (e) { mensaje('mAccMsg', e.message); if (/PIN/.test(e.message)) mosSalir(); }
 }
 
 function mosCompra() {
   const m = montoActual();
   if (!(m > 0)) return mensaje('mAccMsg', 'Poné el monto de la compra');
-  accionMostrador({ accion: 'mostradorCompra', monto: m }, r => '✔ Compra de ' + pesos(m) + ': +' + r.puntos + ' puntos');
+  accionMostrador({ accion: 'mostradorCompra', monto: m },
+    r => '✔ Compra de ' + pesos(m) + ': +' + r.puntos + ' puntos',
+    r => 'Sumaste *' + r.puntos + ' puntos* con tu compra de ' + pesos(m) + '.');
 }
 
 function mosVisita() {
-  accionMostrador({ accion: 'mostradorVisita' }, r => '✔ Visita: +' + r.puntos + ' puntos');
+  accionMostrador({ accion: 'mostradorVisita' },
+    r => '✔ Visita: +' + r.puntos + ' puntos',
+    r => 'Sumaste *' + r.puntos + ' puntos* por tu visita.');
 }
 
 function mosCanje() {
   if (!confirm('¿Canjear ' + CFG.puntosCanje + ' puntos por ' + pesos(CFG.descuentoCanje) + ' de descuento?')) return;
-  accionMostrador({ accion: 'mostradorCanje' }, r => '✔ Canje hecho. Aplicá ' + pesos(r.descuento) + ' de descuento');
-}
-
-async function mosGenerarLink() {
-  mensaje('mLinkMsg', ''); ver('mLinkRes', false);
-  try {
-    const r = await api({ accion: 'mostradorLink', pin: pinActual(), empleado: atendioActual() });
-    const url = base() + '?c=' + r.codigo + '&l=' + encodeURIComponent(r.local.id);
-    linkMensaje = '¡Gracias por tu compra en ' + r.local.nombre + '! 💚 Calificá la atención de ' + r.empleado + ' y sumá puntos: ' + url;
-    $('mLinkTxt').textContent = linkMensaje;
-    const tel = mosCli ? soloNum(mosCli.telefono).slice(-10) : '';
-    $('mLinkWa').href = (tel.length === 10 ? 'https://wa.me/549' + tel : 'https://wa.me/') + '?text=' + encodeURIComponent(linkMensaje);
-    $('mLinkWa').textContent = tel.length === 10 ? 'Enviar a ' + mosCli.nombre + ' por WhatsApp' : 'Abrir en WhatsApp';
-    ver('mLinkRes', true);
-  } catch (e) { mensaje('mLinkMsg', e.message); if (/PIN/.test(e.message)) mosSalir(); }
-}
-
-async function mosCopiarLink() {
-  try {
-    await navigator.clipboard.writeText(linkMensaje);
-    mensaje('mLinkMsg', 'Mensaje copiado ✔ Pegalo en el chat del cliente.', true);
-  } catch (e) {
-    mensaje('mLinkMsg', 'No se pudo copiar solo. Seleccioná el texto de arriba y copialo a mano.');
-  }
+  accionMostrador({ accion: 'mostradorCanje' },
+    r => '✔ Canje hecho. Aplicá ' + pesos(r.descuento) + ' de descuento',
+    r => 'Canjeaste ' + CFG.puntosCanje + ' puntos por *' + pesos(r.descuento) + ' de descuento*.');
 }
 
 /* ---------------- RANKING ---------------- */
