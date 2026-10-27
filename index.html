@@ -652,12 +652,20 @@ function mosMostrar(c) {
 /* --- Mensaje único de WhatsApp: puntos + link para calificar --- */
 let MSG_CLIENTE = '';
 
+// "Go.Pan" → "Club Go.Pan"; "Club de Puntos Go.Pan" queda igual (evita "Club Club…")
+const ptos = n => n + (Number(n) === 1 ? ' punto' : ' puntos');
+
+function clubTxt() {
+  const n = String(CFG.nombreClub || '').trim();
+  return /^club\b/i.test(n) ? n : 'Club ' + n;
+}
+
 function armarMensaje(c, linea, r) {
   const nombre = String(c.nombre || '').split(' ')[0];
   const local = MOS_LOCAL ? MOS_LOCAL.nombre : CFG.nombreClub;
   const desc = descuentoDe(c.saldo);
   const l = ['¡Hola ' + nombre + '! Gracias por elegir ' + local + ' 💚', '', linea,
-    'Ahora tenés *' + c.saldo + ' puntos* en el Club ' + CFG.nombreClub + '. ' +
+    'Ahora tenés *' + ptos(c.saldo) + '* en el ' + clubTxt() + '. ' +
     (desc > 0 ? 'Te alcanzan para ' + pesos(desc) + ' de descuento en cualquiera de nuestros locales.'
               : 'Te faltan ' + (CFG.puntosCanje - c.saldo) + ' para tu descuento de ' + pesos(CFG.descuentoCanje) + '.')];
   if (r.codigo) {
@@ -708,7 +716,7 @@ async function copiarTexto(texto, avisoId) {
 /* --- Invitación al club (el mismo link del QR del local) --- */
 function textoInvitacion() {
   const local = MOS_LOCAL ? MOS_LOCAL.nombre : CFG.nombreClub;
-  return '¡Hola! 👋 Te invitamos al Club de Puntos ' + CFG.nombreClub + ' de ' + local + '.\n' +
+  return '¡Hola! 👋 Te invitamos al ' + clubTxt() + ' de ' + local + '.\n' +
     'Registrate gratis en 30 segundos, sumá puntos con cada compra y canjealos por descuentos en todos nuestros locales:\n' +
     base() + (MOS_LOCAL ? '?l=' + encodeURIComponent(MOS_LOCAL.id) : '');
 }
@@ -734,6 +742,12 @@ async function accionMostrador(datos, okTexto, lineaMsg) {
     const tel = soloNum(r.cliente.telefono).slice(-10);
     $('mWa').textContent = tel.length === 10 ? 'Enviar a ' + r.cliente.nombre + ' por WhatsApp' : 'Abrir WhatsApp (elegí el contacto)';
     ver('mMsgBox', true);
+    if (!r.codigo) {
+      const motivo = r.motivo || (r.codigo === undefined
+        ? 'El servidor no generó el link: falta publicar la nueva versión de Apps Script (Implementar → Gestionar implementaciones → Nueva versión).'
+        : 'No se pudo generar el link.');
+      mensaje('mMsgAviso', 'Mensaje sin link para calificar. ' + motivo);
+    }
   } catch (e) { mensaje('mAccMsg', e.message); if (/PIN/.test(e.message)) mosSalir(); }
 }
 
@@ -742,13 +756,13 @@ function mosCompra() {
   if (!(m > 0)) return mensaje('mAccMsg', 'Poné el monto de la compra');
   accionMostrador({ accion: 'mostradorCompra', monto: m },
     r => '✔ Compra de ' + pesos(m) + ': +' + r.puntos + ' puntos',
-    r => 'Sumaste *' + r.puntos + ' puntos* con tu compra de ' + pesos(m) + '.');
+    r => 'Sumaste *' + ptos(r.puntos) + '* con tu compra de ' + pesos(m) + '.');
 }
 
 function mosVisita() {
   accionMostrador({ accion: 'mostradorVisita' },
     r => '✔ Visita: +' + r.puntos + ' puntos',
-    r => 'Sumaste *' + r.puntos + ' puntos* por tu visita.');
+    r => 'Sumaste *' + ptos(r.puntos) + '* por tu visita.');
 }
 
 function mosCanje() {
