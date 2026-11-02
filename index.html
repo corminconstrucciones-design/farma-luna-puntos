@@ -72,6 +72,10 @@
   .qr #qrcode{display:inline-block;padding:16px;background:#fff;border-radius:16px;margin:10px 0}
   .qr h2{font-size:28px}
   .califica{border:2px solid var(--amarillo)}
+  .canje{border-top:1px solid var(--borde);margin-top:16px;padding-top:4px}
+  .descuento{background:#FFF4D6;border:3px solid var(--amarillo);border-radius:16px;padding:16px;text-align:center;margin-top:14px}
+  .descuento .monto{font-size:44px;font-weight:800;color:var(--texto);line-height:1.1}
+  .descuento b{display:block;font-size:15px}
   .empleados{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
   .empleados .btn{margin-top:0;font-size:17px;padding:14px 10px}
   .atiende{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--verde-claro);border-radius:12px;padding:10px 14px;margin-bottom:14px;font-weight:700;color:var(--verde-osc)}
@@ -201,13 +205,17 @@
         <button class="btn btn-p" onclick="mosElegir($('atendio').value.trim())">Empezar</button>
       </div>
       <div id="mQuienMsg"></div>
-      <button class="link" onclick="mosSalir()">Cerrar mostrador</button>
+      <button class="link" onclick="mosSalir()">Cambiar de local</button>
     </div>
 
     <div id="mPanel" class="oculto">
       <div class="atiende">
-        <span><span id="mAtiende"></span><small id="mLocalTxt"></small></span>
-        <button onclick="mosQuien()">Cambiar</button>
+        <span>📍 <span id="mLocalTxt"></span></span>
+        <button onclick="mosSalir()">Cambiar local</button>
+      </div>
+      <div class="atiende">
+        <span id="mAtiende"></span>
+        <button onclick="mosQuien()">Cambiar empleado</button>
       </div>
 
       <div class="card">
@@ -250,7 +258,13 @@
           <p class="muted" id="mPrevia" style="margin:8px 0 0"></p>
           <button class="btn btn-p" onclick="mosCompra()">Sumar compra</button>
           <button class="btn btn-s" onclick="mosVisita()" id="mBtnVisita">Sumar visita (sin compra)</button>
-          <button class="btn btn-g" onclick="mosCanje()" id="mBtnCanje">Canjear puntos</button>
+          <div class="canje">
+            <label>Canjear puntos</label>
+            <p class="muted" id="mCanjeTxt" style="margin:0"></p>
+            <div class="chips" id="mCanjeOpc"></div>
+            <button class="btn btn-g" onclick="mosCanje()" id="mBtnCanje" disabled>Elegí cuántos puntos canjear</button>
+          </div>
+          <div id="mDescuento" class="descuento oculto"></div>
           <div id="mAccMsg"></div>
           <div id="mMsgBox" class="oculto">
             <div class="linkbox" id="mMsgTxt"></div>
@@ -593,12 +607,14 @@ function mosMostrarQuien() {
 
 function mosElegir(nombre) {
   if (!nombre) return mensaje('mQuienMsg', 'Elegí o escribí tu nombre');
-  guardar('clubAtendio', nombre); $('atendio').value = nombre;
-  $('mAtiende').textContent = 'Atiende: ' + nombre;
+  guardar('clubAtendio', nombre); guardar('clubAtendioDia', hoyTxt()); $('atendio').value = nombre;
+  $('mAtiende').textContent = '👤 Atiende: ' + nombre;
   ver('mQuien', false); ver('mPanel', true); ver('mMsgBox', false); MSG_CLIENTE = '';
   pintarModoWa();
   $('buscar').focus();
 }
+
+const hoyTxt = () => new Date().toDateString();
 
 function mosSalir() {
   guardar('clubPin', null); guardar('clubAtendio', null); $('pin').value = ''; mosCli = null; MOS_LOCAL = null;
@@ -642,8 +658,7 @@ function mosMostrar(c) {
   $('mVisitas').textContent = c.visitas;
   $('mUltima').textContent = c.ultimaVisita || '—';
   $('mResena').textContent = c.resenas || 0;
-  $('mBtnCanje').disabled = c.saldo < CFG.puntosCanje;
-  $('mBtnCanje').textContent = 'Canjear ' + CFG.puntosCanje + ' puntos = ' + pesos(CFG.descuentoCanje);
+  pintarCanje(c);
   $('mBtnVisita').classList.toggle('oculto', !(CFG.puntosVisita > 0));
   $('monto').value = ''; mosPrevia(); mensaje('mAccMsg', '');
   ver('mMsgBox', false); mensaje('mMsgAviso', ''); MSG_CLIENTE = '';
@@ -765,11 +780,52 @@ function mosVisita() {
     r => 'Sumaste *' + ptos(r.puntos) + '* por tu visita.');
 }
 
-function mosCanje() {
-  if (!confirm('¿Canjear ' + CFG.puntosCanje + ' puntos por ' + pesos(CFG.descuentoCanje) + ' de descuento?')) return;
-  accionMostrador({ accion: 'mostradorCanje' },
-    r => '✔ Canje hecho. Aplicá ' + pesos(r.descuento) + ' de descuento',
-    r => 'Canjeaste ' + CFG.puntosCanje + ' puntos por *' + pesos(r.descuento) + ' de descuento*.');
+/* --- Canje: el empleado elige cuántos bloques de puntos canjear --- */
+let canjeVeces = 0;
+
+function pintarCanje(c) {
+  canjeVeces = 0;
+  ver('mDescuento', false);
+  const max = Math.floor(c.saldo / CFG.puntosCanje);
+  const box = $('mCanjeOpc'); box.innerHTML = '';
+  if (max < 1) {
+    $('mCanjeTxt').textContent = 'Le faltan ' + (CFG.puntosCanje - c.saldo) + ' puntos para su primer canje.';
+    $('mBtnCanje').disabled = true; $('mBtnCanje').textContent = 'Sin puntos suficientes';
+    return;
+  }
+  $('mCanjeTxt').textContent = 'Cada ' + CFG.puntosCanje + ' puntos = ' + pesos(CFG.descuentoCanje) +
+    '. Puede canjear hasta ' + (max * CFG.puntosCanje) + ' puntos (' + pesos(max * CFG.descuentoCanje) + ').';
+  // Opciones: 1, 2, 3… hasta 10 bloques, y siempre el máximo
+  const opciones = [];
+  for (let i = 1; i <= Math.min(max, 10); i++) opciones.push(i);
+  if (max > 10) opciones.push(max);
+  opciones.forEach(v => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.textContent = (v * CFG.puntosCanje) + ' pts = ' + pesos(v * CFG.descuentoCanje);
+    b.onclick = () => {
+      canjeVeces = v;
+      [...box.children].forEach(x => x.classList.toggle('on', x === b));
+      $('mBtnCanje').disabled = false;
+      $('mBtnCanje').textContent = 'Canjear ' + (v * CFG.puntosCanje) + ' puntos = ' + pesos(v * CFG.descuentoCanje);
+    };
+    box.appendChild(b);
+  });
+  $('mBtnCanje').disabled = true; $('mBtnCanje').textContent = 'Elegí cuántos puntos canjear';
+}
+
+async function mosCanje() {
+  if (!canjeVeces) return mensaje('mAccMsg', 'Elegí cuántos puntos canjear');
+  const pts = canjeVeces * CFG.puntosCanje, desc = canjeVeces * CFG.descuentoCanje;
+  if (!confirm('¿Canjear ' + pts + ' puntos por ' + pesos(desc) + ' de descuento?')) return;
+  await accionMostrador({ accion: 'mostradorCanje', veces: canjeVeces },
+    r => '✔ Canje hecho: ' + r.puntosCanjeados + ' puntos',
+    r => 'Canjeaste ' + ptos(r.puntosCanjeados || pts) + ' por *' + pesos(r.descuento) + ' de descuento*.');
+  if (mosCli && $('mAccMsg').textContent.indexOf('✔') >= 0) {
+    $('mDescuento').innerHTML = '<b>APLICÁ EN EL SISTEMA DE VENTAS UN DESCUENTO DE</b>' +
+      '<div class="monto">' + esc(pesos(desc)) + '</div>' +
+      '<span class="muted">Canje de ' + pts + ' puntos · queda registrado en la hoja Movimientos</span>';
+    ver('mDescuento', true);
+  }
 }
 
 /* ---------------- RANKING ---------------- */
@@ -890,7 +946,9 @@ async function iniciar() {
       try {
         const r = await api({ accion: 'mostradorEntrar', pin: leer('clubPin') });
         aplicarLocalMostrador(r);
-        if (leer('clubAtendio')) mosElegir(leer('clubAtendio')); else mosMostrarQuien();
+        // Cada día nuevo pide de nuevo quién atiende
+        if (leer('clubAtendio') && leer('clubAtendioDia') === hoyTxt()) mosElegir(leer('clubAtendio'));
+        else mosMostrarQuien();
       } catch (e) { mosSalir(); mensaje('mPinMsg', e.message); }
     }
     return;
