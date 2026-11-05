@@ -5,8 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1F6F4A">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Club de Puntos">
-<title>Club de Puntos</title>
+<meta name="apple-mobile-web-app-title" content="Club de Puntos Go.Pa">
+<title>Club de Puntos Go.Pa</title>
+<meta name="description" content="Sumá puntos con cada compra y canjealos por descuentos en Farmacia Luna, Santa Bárbara y Sentite Bárbara.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Club de Puntos Go.Pa">
+<meta property="og:title" content="Club de Puntos Go.Pa · Registrate gratis">
+<meta property="og:description" content="Sumá puntos con cada compra y canjealos por descuentos en Farmacia Luna, Santa Bárbara y Sentite Bárbara.">
+<meta property="og:image" content="https://farma-luna-puntos.vercel.app/og-image.jpg">
+<meta property="og:image:width" content="600">
+<meta property="og:image:height" content="600">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -172,6 +181,9 @@
         <div id="cGoogle" class="oculto">
           <p id="cGoogleTxt">¿Nos ayudás también contándolo en Google?</p>
           <a id="cGoogleBtn" class="btn btn-s" target="_blank" rel="noopener">⭐ Calificar en Google</a>
+          <p class="muted" style="margin:12px 0 0;font-size:14px">Para publicar en Google necesitás tener iniciada una cuenta de Google (Gmail) en el celular. Si se abrió dentro de WhatsApp y no te deja, tocá <b>⋮</b> o <b>Compartir</b> y elegí <b>Abrir en el navegador</b>.</p>
+          <button class="link" onclick="copiarTexto($('cGoogleBtn').href, 'cGoogleAviso')">Copiar el link de Google</button>
+          <div id="cGoogleAviso"></div>
         </div>
       </div>
 
@@ -599,6 +611,12 @@ function mosMostrarQuien() {
   MOS_EMPLEADOS.forEach(emp => {
     const b = document.createElement('button');
     b.className = 'btn btn-s'; b.textContent = emp.nombre;
+    if (MOS_LOCAL && emp.local && emp.local !== MOS_LOCAL.nombre) {
+      const s = document.createElement('small');
+      s.style.cssText = 'display:block;font-size:12px;font-weight:600;opacity:.75';
+      s.textContent = 'de ' + emp.local;
+      b.appendChild(s);
+    }
     b.onclick = () => mosElegir(emp.nombre);
     box.appendChild(b);
   });
@@ -731,9 +749,16 @@ async function copiarTexto(texto, avisoId) {
 /* --- Invitación al club (el mismo link del QR del local) --- */
 function textoInvitacion() {
   const local = MOS_LOCAL ? MOS_LOCAL.nombre : CFG.nombreClub;
-  return '¡Hola! 👋 Te invitamos al ' + clubTxt() + ' de ' + local + '.\n' +
-    'Registrate gratis en 30 segundos, sumá puntos con cada compra y canjealos por descuentos en todos nuestros locales:\n' +
-    base() + (MOS_LOCAL ? '?l=' + encodeURIComponent(MOS_LOCAL.id) : '');
+  const nombres = CFG.locales.map(l => l.nombre);
+  const lista = nombres.length > 1 ? nombres.slice(0, -1).join(', ') + ' y ' + nombres[nombres.length - 1] : (nombres[0] || local);
+  return '💚 *¡Llegó el ' + clubTxt() + '!* 💚\n\n' +
+    'Cada compra en *' + lista + '* ahora suma puntos.\n\n' +
+    '✅ Por cada ' + pesos(CFG.pesosPorPunto) + ' sumás 1 punto\n' +
+    '✅ Tus puntos valen *dinero* en descuentos\n' +
+    '✅ Los usás en *cualquiera* de nuestros locales\n\n' +
+    'Registrate gratis en 30 segundos 👇\n' +
+    base() + (MOS_LOCAL ? '?l=' + encodeURIComponent(MOS_LOCAL.id) : '') + '\n\n' +
+    '¡Empezá a sumar hoy!';
 }
 
 function mosInvitar() { abrirWa('', textoInvitacion()); }
@@ -745,10 +770,15 @@ function mosPrevia() {
   $('mPrevia').textContent = m > 0 ? 'Suma ' + Math.floor(m / CFG.pesosPorPunto) + ' puntos' : '';
 }
 
+let ULTIMO_R = null;
+
 async function accionMostrador(datos, okTexto, lineaMsg) {
-  mensaje('mAccMsg', '');
+  mensaje('mAccMsg', ''); ULTIMO_R = null;
   try {
     const r = await api(Object.assign({ pin: pinActual(), dni: mosCli.dni, atendio: atendioActual() }, datos));
+    ULTIMO_R = r;
+    // Refresca la configuración por si cambiaron puntos o valores en la planilla
+    api({ accion: 'config' }, true).then(c => { Object.assign(CFG, c); }).catch(() => {});
     mosMostrar(r.cliente);
     mensaje('mAccMsg', okTexto(r), true);
     // Deja listo el mensaje único para WhatsApp (puntos + link de calificación)
@@ -820,10 +850,11 @@ async function mosCanje() {
   await accionMostrador({ accion: 'mostradorCanje', veces: canjeVeces },
     r => '✔ Canje hecho: ' + r.puntosCanjeados + ' puntos',
     r => 'Canjeaste ' + ptos(r.puntosCanjeados || pts) + ' por *' + pesos(r.descuento) + ' de descuento*.');
-  if (mosCli && $('mAccMsg').textContent.indexOf('✔') >= 0) {
+  if (mosCli && $('mAccMsg').textContent.indexOf('✔') >= 0 && ULTIMO_R) {
+    // Monto y puntos que devolvió el servidor (por si la configuración cambió sin recargar la página)
     $('mDescuento').innerHTML = '<b>APLICÁ EN EL SISTEMA DE VENTAS UN DESCUENTO DE</b>' +
-      '<div class="monto">' + esc(pesos(desc)) + '</div>' +
-      '<span class="muted">Canje de ' + pts + ' puntos · queda registrado en la hoja Movimientos</span>';
+      '<div class="monto">' + esc(pesos(ULTIMO_R.descuento)) + '</div>' +
+      '<span class="muted">Canje de ' + esc(ULTIMO_R.puntosCanjeados) + ' puntos · queda registrado en la hoja Movimientos</span>';
     ver('mDescuento', true);
   }
 }
