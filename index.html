@@ -169,6 +169,7 @@
       <div id="cResena" class="card oculto">
         <h2 id="cResenaTit">¿Qué te pareció?</h2>
         <p class="muted" id="cResenaTxt">Contanos y sumá puntos.</p>
+        <div class="chips" id="cResLocales" style="margin-bottom:6px"></div>
         <div class="estrellas" id="estrellas"></div>
         <textarea id="resComentario" placeholder="Si querés, dejanos un comentario (opcional)"></textarea>
         <button class="btn btn-p" onclick="cliResena()">Enviar</button>
@@ -455,6 +456,8 @@ async function cliRegistrar() {
 }
 
 // El local de la reseña: el del QR escaneado o, si no, el último donde compró
+let RES_LOCAL = '';
+
 function localParaResena(c) { return localPorId(LOCAL_ID) || localPorId(c.ultimoLocal); }
 
 function mostrarPuntos(c, sinRevisar) {
@@ -466,12 +469,33 @@ function mostrarPuntos(c, sinRevisar) {
   $('cDesc').textContent = textoSaldo(c.saldo);
   const avance = c.saldo >= CFG.puntosCanje ? 100 : Math.round((c.saldo % CFG.puntosCanje) / CFG.puntosCanje * 100);
   $('cBarra').style.width = avance + '%';
+  const hechas = c.resenas || [];
+  const ptsTxt = CFG.puntosResena > 0 ? 'Contanos y sumá ' + CFG.puntosResena + ' puntos. Te lleva 10 segundos.' : 'Contanos, te lleva 10 segundos.';
   const loc = localParaResena(c);
-  const falta = loc && (c.resenas || []).indexOf(loc.id) < 0;
-  ver('cResena', !!falta);
+  const box = $('cResLocales'); box.innerHTML = '';
   if (loc) {
+    // Sabemos de qué local viene (link o QR con ?l=, o su última compra)
+    RES_LOCAL = loc.id;
+    ver('cResena', hechas.indexOf(loc.id) < 0);
     $('cResenaTit').textContent = '¿Qué te pareció ' + loc.nombre + '?';
-    $('cResenaTxt').textContent = CFG.puntosResena > 0 ? 'Contanos y sumá ' + CFG.puntosResena + ' puntos. Te lleva 10 segundos.' : 'Contanos, te lleva 10 segundos.';
+    $('cResenaTxt').textContent = ptsTxt;
+  } else {
+    // No sabemos el local (QR viejo sin local, o registrado sin compra): que lo elija
+    RES_LOCAL = '';
+    const pendientes = CFG.locales.filter(l => hechas.indexOf(l.id) < 0);
+    ver('cResena', pendientes.length > 0);
+    $('cResenaTit').textContent = '¿Qué te pareció nuestro local?';
+    $('cResenaTxt').textContent = 'Elegí el local que visitaste. ' + ptsTxt;
+    pendientes.forEach(l => {
+      const b = document.createElement('button');
+      b.className = 'chip'; b.textContent = l.nombre;
+      b.onclick = () => {
+        RES_LOCAL = l.id;
+        [...box.children].forEach(x => x.classList.toggle('on', x === b));
+        $('cResenaTit').textContent = '¿Qué te pareció ' + l.nombre + '?';
+      };
+      box.appendChild(b);
+    });
   }
   estrellasSel = 0; pintarResena(); $('resComentario').value = ''; mensaje('cResMsg', '');
   if (!sinRevisar) revisarCalificacion();
@@ -537,8 +561,8 @@ function limpiarLink() {
 async function cliResena() {
   mensaje('cResMsg', '');
   if (!estrellasSel) return mensaje('cResMsg', 'Tocá las estrellas para calificar');
-  const loc = cliActual && localParaResena(cliActual);
-  if (!loc) return mensaje('cResMsg', 'No sabemos de qué local es tu opinión. Escaneá el QR del local.');
+  const loc = localPorId(RES_LOCAL);
+  if (!loc) return mensaje('cResMsg', 'Elegí el local que visitaste');
   try {
     const r = await api({ accion: 'resena', dni: clienteDni, localId: loc.id, estrellas: estrellasSel, comentario: $('resComentario').value });
     mostrarPuntos(r.cliente, true);
