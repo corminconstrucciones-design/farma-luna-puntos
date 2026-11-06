@@ -290,7 +290,10 @@
 
       <div class="card">
         <h2 style="font-size:18px">Invitar al club por WhatsApp</h2>
-        <p class="muted">Para clientes que compran por WhatsApp y todavía no están registrados. Es el mismo link del QR del local: se registran, suman puntos y dejan su reseña en Google.</p>
+        <p class="muted">Para clientes que todavía no están registrados. Les llega el link del local: se registran, suman puntos y dejan su reseña en Google.</p>
+        <label for="invTel">WhatsApp del cliente</label>
+        <input id="invTel" inputmode="tel" placeholder="2645123456" autocomplete="off">
+        <p class="muted" style="margin:6px 0 0;font-size:14px">Con código de área, sin 0 y sin 15. No hace falta tenerlo agendado.</p>
         <button class="btn btn-wa" onclick="mosInvitar()">Enviar invitación por WhatsApp</button>
         <button class="link" onclick="copiarTexto(textoInvitacion(), 'mInvAviso')">Copiar invitación</button>
         <div id="mInvAviso"></div>
@@ -674,6 +677,7 @@ async function mosBuscar() {
     else {
       ver('mNuevo', true); mensaje('mNuevoMsg', '');
       $('nDni').value = q.length <= 8 ? q : ''; $('nTel').value = q.length > 8 ? q : '';
+      if (q.length > 8) $('invTel').value = q;
       $('nNombre').value = ''; $('nApellido').value = ''; $('nAcepta').checked = false;
     }
   } catch (e) { mensaje('mBusMsg', e.message); if (/PIN/.test(e.message)) mosSalir(); }
@@ -785,7 +789,26 @@ function textoInvitacion() {
     '¡Empezá a sumar hoy!';
 }
 
-function mosInvitar() { abrirWa('', textoInvitacion()); }
+// Normaliza un celular argentino a 10 dígitos (código de área + número)
+function normalizarTel(x) {
+  let d = soloNum(x);
+  if (d.startsWith('549')) d = d.slice(3);
+  else if (d.startsWith('54') && d.length === 12) d = d.slice(2);
+  if (d.startsWith('0')) d = d.slice(1);
+  // 264 15 5123456 → 264 5123456 (saca el 15 después de un código de área de 2 a 4 dígitos)
+  if (d.length === 12) for (const n of [2, 3, 4]) if (d.substr(n, 2) === '15') { d = d.slice(0, n) + d.slice(n + 2); break; }
+  return d.length === 10 ? d : '';
+}
+
+function mosInvitar() {
+  mensaje('mInvAviso', '');
+  const escrito = $('invTel').value.trim();
+  if (!escrito) return mensaje('mInvAviso', 'Escribí el WhatsApp del cliente');
+  const tel = normalizarTel(escrito);
+  if (!tel) return mensaje('mInvAviso', 'Revisá el número: código de área + número, sin 0 y sin 15 (ej.: 2645123456)');
+  abrirWa(tel, textoInvitacion());
+  $('invTel').value = '';
+}
 
 function montoActual() { return Number(soloNum($('monto').value)); }
 
